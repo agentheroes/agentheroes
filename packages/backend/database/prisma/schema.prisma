@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String             @id @default(uuid())
+  email         String
+  password      String?
+  providerName  Provider
+  name          String?
+  lastName      String?
+  isSuperAdmin  Boolean            @default(false)
+  providerId    String?
+  organizations UserOrganization[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  activated     Boolean            @default(true)
+
+  @@unique([email, providerName])
+}
+
+model Organization {
+  id         String             @id @default(uuid())
+  users      UserOrganization[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  allowTrial Boolean            @default(false)
+  models     Models[]
+}
+
+model UserOrganization {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  disabled       Boolean      @default(false)
+  role           Role         @default(USER)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([disabled])
+}
+
+model Models {
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  container String
+  models String
+  apiKey String
+
+  @@id([organizationId, container])
+}
+
+enum Provider {
+  LOCAL
+  GITHUB
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  USER
+}
