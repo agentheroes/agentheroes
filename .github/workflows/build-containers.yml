@@ -39,8 +39,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install docker colima docker-buildx
-          colima delete
-          colima start
+          colima start --vm-type qemu
 
       - name: Login to ghcr
         uses: docker/login-action@v3
