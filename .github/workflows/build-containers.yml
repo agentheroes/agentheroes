@@ -19,6 +19,13 @@ jobs:
           echo "containerver=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
 
   build-containers:
+    needs: build-containers-common
+    strategy:
+      matrix:
+        include:
+            - runnertags: ubuntu-latest
+              arch: amd64
+
     runs-on: ${{ matrix.runnertags }}
     steps:
       - name: Checkout
