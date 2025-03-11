@@ -69,6 +69,6 @@ jobs:
         env:
           CONTAINERVER: ${{ needs.build-containers-common.outputs.containerver }}
         run: |
-          docker manifest create ghcr.io/agentheroes/agentheroes:latest ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
+          docker manifest create ghcr.io/agentheroes/agentheroes:latest ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64
 
           docker manifest push ghcr.io/agentheroes/agentheroes:latest
