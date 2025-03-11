@@ -92,8 +92,4 @@ export class OrganizationRepository {
 
     return create;
   }
-
-  async getModels(orgId: string) {
-    return this._models.model.models.findMany();
-  }
 }

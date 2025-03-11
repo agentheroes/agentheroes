@@ -34,8 +34,4 @@ export class OrganizationService {
   ) {
     return this._organizationRepository.addUserToOrg(userId, id, orgId, role);
   }
-
-  getModels(orgId: string) {
-    return this._organizationRepository.getModels(orgId);
-  }
 }

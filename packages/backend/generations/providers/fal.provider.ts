@@ -1,6 +1,6 @@
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
-import {GenerationBaseInterface} from "@packages/backend/generations/generation.base.interface";
+import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
 
 async function createFalInstance(apiKey: string) {
   const { fal } = await import("@fal-ai/client");
@@ -14,9 +14,13 @@ export class FalProvider implements GenerationBaseInterface {
   identifier = GenerationIdentifiers.FAL;
   models = [
     {
-      label: "Fal Consistent Character",
-      model:
-        "fofr/consiastent-character:9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
+      label: "Realistic People",
+      model: "fal-ai/flux-pro/v1.1-ultra",
+      category: GenerationCategory.NORMAL_IMAGE,
+    },
+    {
+      label: "Generic Image Generation",
+      model: "fal-ai/fooocus",
       category: GenerationCategory.NORMAL_IMAGE,
     },
   ];
@@ -34,11 +38,11 @@ export class FalProvider implements GenerationBaseInterface {
       input: {
         prompt: text,
         total,
-        seed
+        seed,
       },
     });
 
-    return result.data;
+    return result.data.images.map((image: any) => image.url);
   }
 
   async testConnection(apiKey: string): Promise<boolean> {

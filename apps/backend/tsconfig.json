@@ -6,6 +6,7 @@
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true
   }
 }

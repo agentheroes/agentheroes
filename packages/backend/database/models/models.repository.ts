@@ -7,6 +7,10 @@ import { EncryptionService } from "@packages/backend/encryption/encryption.servi
 export class ModelsRepository {
   constructor(private _models: PrismaRepository<"models">) {}
 
+  async getModels() {
+    return this._models.model.models.findMany();
+  }
+
   async saveSettings(organizationId: string, settings: SetupDto) {
     for (const setting of settings.list) {
       await this._models.model.models.upsert({

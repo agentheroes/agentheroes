@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Home, Users, Share2, Settings } from "lucide-react"
+import { Home, Users, Share2, Settings, Plus } from "lucide-react"
 
 export function Sidebar() {
   return (
@@ -15,6 +15,13 @@ export function Sidebar() {
         >
           <Users className="h-5 w-5" />
           <span>Characters</span>
+        </Link>
+        <Link
+          href="/character-generator"
+          className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+        >
+          <Plus className="h-5 w-5" />
+          <span>Create Character</span>
         </Link>
         <Link
           href="/social-media"

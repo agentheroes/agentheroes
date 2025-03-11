@@ -2,15 +2,46 @@ import { Injectable } from "@nestjs/common";
 import { ModelsRepository } from "@packages/backend/database/models/models.repository";
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { SetupDto } from "@packages/shared/dto/setup/setup.dto";
-import {HttpBadRequestException} from "@packages/backend/exceptions/http.exceptions";
-import {providersList} from "@packages/backend/generations/providers.list";
+import { HttpBadRequestException } from "@packages/backend/exceptions/http.exceptions";
+import { providersList } from "@packages/backend/generations/providers.list";
+import { EncryptionService } from "@packages/backend/encryption/encryption.service";
+import { groupBy } from "lodash";
+import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
+import {GenerationService} from "@packages/backend/generations/generation.service";
 
 @Injectable()
 export class ModelsService {
-  constructor(private _modelsRepository: ModelsRepository) {}
+  constructor(
+      private _modelsRepository: ModelsRepository,
+      private _generationService: GenerationService
+  ) {}
 
   getAllModels() {
     return [...providersList];
+  }
+
+  async getModelsForClient(includePassword?: boolean) {
+    const all = providersList.flatMap((p) =>
+      p.models.map((m) => ({ ...m, identifier: p.identifier })),
+    );
+
+    const models = (await this._modelsRepository.getModels()).map(
+      ({ apiKey, ...all }) => {
+        return {
+          ...all,
+          ...(includePassword
+            ? { apiKey: (EncryptionService.verifyJWT(apiKey) as any).key }
+            : {}),
+        };
+      },
+    );
+
+    const list = groupBy(all, (p) => p.category);
+
+    return {
+      models,
+      list,
+    };
   }
 
   async checkModelApi(provider: GenerationIdentifiers, api: string) {
@@ -34,5 +65,13 @@ export class ModelsService {
 
   async getModelsByIdentifier(identifier: string) {
     return this._modelsRepository.getModelsByIdentifier(identifier);
+  }
+
+  async generateImage(data: GenerateModelDto) {
+    return this._generationService.generatePicture(data.model, data.prompt, 1);
+  }
+
+  async generateLookALike(data: GenerateModelDto) {
+    return this._generationService.generateLookALike(data.model, data.prompt, data.image, 1);
   }
 }

@@ -1,7 +1,7 @@
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import Replicate from "replicate";
-import {GenerationBaseInterface} from "@packages/backend/generations/generation.base.interface";
+import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
 
 export class ReplicateProvider implements GenerationBaseInterface {
   identifier = GenerationIdentifiers.REPLICATE;
@@ -22,22 +22,53 @@ export class ReplicateProvider implements GenerationBaseInterface {
     previousImage?: string,
   ) {
     const replicate = new Replicate({
-      auth: apiKey
+      auth: apiKey,
     });
 
     // @ts-ignore
     const [output] = await replicate.run(
-        model as `${string}/${string}` | `${string}/${string}:${string}`,
-        {
-          input: {
-            prompt: text,
-            total,
-            seed
-          },
-        }
+      model as `${string}/${string}` | `${string}/${string}:${string}`,
+      {
+        input: {
+          prompt: text,
+          total,
+          seed,
+        },
+      },
     );
 
     return output;
+  }
+
+  async generateLookALikeImages(
+    apiKey: string,
+    model: string,
+    text: string,
+    total: number,
+    image: string,
+    seed?: number,
+    previousImage?: string,
+  ) {
+    const replicate = new Replicate({
+      auth: apiKey,
+      useFileOutput: false,
+    });
+
+    const load = await replicate.run(model as `${string}/${string}` | `${string}/${string}:${string}`, {
+      input: {
+        prompt: text,
+        subject: image,
+        output_format: "webp",
+        output_quality: 80,
+        negative_prompt: "",
+        randomise_poses: true,
+        number_of_outputs: 1,
+        number_of_images_per_pose: 1
+      },
+    });
+
+    console.log(load);
+    return load as any;
   }
 
   async testConnection(apiKey: string): Promise<boolean> {

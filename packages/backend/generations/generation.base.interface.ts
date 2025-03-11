@@ -34,9 +34,10 @@ export interface GenerationBaseInterface
     model: string,
     text: string,
     total: number,
+    image: string,
     seed?: number,
     previousImage?: string,
-  ): Promise<string | Buffer>;
+  ): Promise<Array<string | Buffer>>;
   trainImages?(
     apiKey: string,
     model: string,

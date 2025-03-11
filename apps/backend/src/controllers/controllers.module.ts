@@ -2,9 +2,10 @@ import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { UsersController } from "@backend/controllers/users.controller";
 import { AuthController } from "@backend/controllers/auth.controller";
 import { AuthMiddleware } from "@backend/services/auth/auth.middleware";
-import {SetupController} from "@backend/controllers/setup.controller";
+import { SetupController } from "@backend/controllers/setup.controller";
+import { ModelsController } from "@backend/controllers/models.controller";
 
-const authControllers = [UsersController, SetupController];
+const authControllers = [UsersController, SetupController, ModelsController];
 
 @Module({
   imports: [],
