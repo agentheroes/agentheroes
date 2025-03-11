@@ -38,7 +38,7 @@ jobs:
       - name: Install and Start Docker (macOS Only)
         if: runner.os == 'macOS'
         run: |
-          brew install docker
+          brew install docker colima docker-buildx
           colima start
 
       - name: Login to ghcr
