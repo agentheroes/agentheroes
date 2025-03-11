@@ -39,6 +39,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install docker colima docker-buildx
+          colima delete
           colima start
 
       - name: Login to ghcr
