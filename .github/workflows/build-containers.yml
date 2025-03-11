@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build-containers-common:
@@ -23,8 +23,10 @@ jobs:
     strategy:
       matrix:
         include:
-            - runnertags: ubuntu-latest
-              arch: amd64
+          - runnertags: ubuntu-latest
+            arch: amd64
+          - runnertags: macos-14
+            arch: arm64
 
     runs-on: ${{ matrix.runnertags }}
     steps:
@@ -69,6 +71,6 @@ jobs:
         env:
           CONTAINERVER: ${{ needs.build-containers-common.outputs.containerver }}
         run: |
-          docker manifest create ghcr.io/agentheroes/agentheroes:latest ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64
+          docker manifest create ghcr.io/agentheroes/agentheroes:latest ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64 ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
 
           docker manifest push ghcr.io/agentheroes/agentheroes:latest
