@@ -1,6 +1,6 @@
 import {IsArray, IsDefined, IsIn, IsString, ValidateNested} from "class-validator";
 import {Type} from "class-transformer";
-import {GenerationIdentifiers} from "@packages/shared/generations/generation.identifiers";
+import {GenerationIdentifiers} from "@packages/backend/generations/generation.identifiers";
 
 export class SetupProviderDto {
     @IsIn(Object.values(GenerationIdentifiers))

@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useFetch } from "@frontend/hooks/use-fetch";
 import { Button } from "@frontend/components/ui/button";
-import { GenerationCategory } from "@packages/shared/generations/generation.category";
+import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import { ModelSelectionCard } from "./model-selection-card";
 import { ApiKeyForm } from "./api-key-form";
 import { Alert, AlertDescription } from "../ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAutoValidateApiKeys } from "@frontend/hooks/use-auto-validate-api-keys";
 
 export interface OnboardingFormProps {
@@ -295,8 +295,8 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -316,18 +316,24 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
   );
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Service Setup</h1>
-      
+    <div className="space-y-8">
       {step === 1 ? (
         <>
-          <div className="mb-8">
-            <p className="text-lg mb-4">
-              Select the models you want to use for each generation category:
-            </p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold mb-2">Select AI Models</h2>
+                <p className="text-muted-foreground">
+                  Choose the AI models you want to use for character generation, video creation, and content generation
+                </p>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Step 1 of 2
+              </div>
+            </div>
             
             {validationError && (
-              <Alert variant="destructive" className="mb-4">
+              <Alert variant="destructive" className="bg-destructive/5 border-destructive/20">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{validationError}</AlertDescription>
               </Alert>
@@ -339,9 +345,9 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
               const isRequired = hasModels && !hasSelection;
               
               return (
-                <div key={category} className="mb-6">
+                <div key={category}>
                   {isRequired && (
-                    <div className="text-red-500 text-sm mb-1">* Required - Select at least one model</div>
+                    <div className="text-destructive text-sm mb-1">* Required - Select at least one model</div>
                   )}
                   <ModelSelectionCard
                     category={category}
@@ -359,17 +365,34 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
             <Button 
               onClick={handleNext}
               disabled={!allCategoriesHaveSelection}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Next: Configure API Keys
+              <span>Configure API Keys</span>
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </>
       ) : (
         <>
-          <div className="mb-8">
-            <p className="text-lg mb-4">
-              Enter API keys for the selected services:
-            </p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold mb-2">Configure API Keys</h2>
+                <p className="text-muted-foreground">
+                  Enter your API keys for the selected AI services (e.g., Stable Diffusion, RunwayML, OpenAI)
+                </p>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Step 2 of 2
+              </div>
+            </div>
+            
+            {validationError && (
+              <Alert variant="destructive" className="bg-destructive/5 border-destructive/20">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{validationError}</AlertDescription>
+              </Alert>
+            )}
             
             <ApiKeyForm
               services={Array.from(requiredServices)}
@@ -380,20 +403,19 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
           </div>
           
           <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep(1)}>
-              Back
+            <Button 
+              variant="outline" 
+              onClick={() => setStep(1)}
+              className="border-border/50 hover:bg-accent"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              <span>Back to Models</span>
             </Button>
-            
-            {validationError && (
-              <Alert variant="destructive" className="mx-4 flex-1">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{validationError}</AlertDescription>
-              </Alert>
-            )}
             
             <Button 
               onClick={handleSubmit}
               disabled={!allRequiredKeysProvided}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Complete Setup
             </Button>

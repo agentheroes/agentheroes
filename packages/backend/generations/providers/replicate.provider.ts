@@ -1,8 +1,9 @@
-import { ImageGeneration } from "@packages/shared/generations/image-generation/image-generation.interface";
-import { GenerationIdentifiers } from "@packages/shared/generations/generation.identifiers";
-import { GenerationCategory } from "@packages/shared/generations/generation.category";
+import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
+import { GenerationCategory } from "@packages/backend/generations/generation.category";
+import Replicate from "replicate";
+import {GenerationBaseInterface} from "@packages/backend/generations/generation.base.interface";
 
-export class ReplicateProvider implements ImageGeneration {
+export class ReplicateProvider implements GenerationBaseInterface {
   identifier = GenerationIdentifiers.REPLICATE;
   models = [
     {
@@ -19,8 +20,24 @@ export class ReplicateProvider implements ImageGeneration {
     total: number,
     seed?: number,
     previousImage?: string,
-  ): Promise<string> {
-    return "";
+  ) {
+    const replicate = new Replicate({
+      auth: apiKey
+    });
+
+    // @ts-ignore
+    const [output] = await replicate.run(
+        model as `${string}/${string}` | `${string}/${string}:${string}`,
+        {
+          input: {
+            prompt: text,
+            total,
+            seed
+          },
+        }
+    );
+
+    return output;
   }
 
   async testConnection(apiKey: string): Promise<boolean> {

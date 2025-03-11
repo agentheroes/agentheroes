@@ -94,10 +94,6 @@ export class OrganizationRepository {
   }
 
   async getModels(orgId: string) {
-    return this._models.model.models.findMany({
-      where: {
-        organizationId: orgId,
-      },
-    });
+    return this._models.model.models.findMany();
   }
 }

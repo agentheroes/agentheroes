@@ -1,15 +1,14 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { videoGenerationList } from "@packages/shared/generations/video-generation/video-generation.list";
-import { imageGenerationList } from "@packages/shared/generations/image-generation/image-generation.list";
 import { groupBy } from "lodash";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
 import { OrganizationService } from "@packages/backend/database/organizations/organization.service";
 import { IsSuperAdminGuard } from "@backend/services/auth/is.super.admin";
 import { ModelsService } from "@packages/backend/database/models/models.service";
-import { GenerationIdentifiers } from "@packages/shared/generations/generation.identifiers";
-import {SetupDto} from "@packages/shared/dto/setup/setup.dto";
-import {EncryptionService} from "@packages/backend/encryption/encryption.service";
+import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
+import { SetupDto } from "@packages/shared/dto/setup/setup.dto";
+import { EncryptionService } from "@packages/backend/encryption/encryption.service";
+import { providersList } from "@packages/backend/generations/providers.list";
 
 @Controller("/setup")
 @IsSuperAdminGuard()
@@ -21,20 +20,17 @@ export class SetupController {
 
   @Get("/")
   async list(@GetOrganizationFromRequest() organization: Organization) {
-    const all = [
-      ...videoGenerationList.flatMap((p) =>
-        p.models.map((m) => ({ ...m, identifier: p.identifier })),
-      ),
-      ...imageGenerationList.flatMap((p) =>
-        p.models.map((m) => ({ ...m, identifier: p.identifier })),
-      ),
-    ];
+    const all = providersList.flatMap((p) =>
+      p.models.map((m) => ({ ...m, identifier: p.identifier })),
+    );
 
-    const models = (await this._organizationService.getModels(organization.id)).map(p => {
+    const models = (
+      await this._organizationService.getModels(organization.id)
+    ).map((p) => {
       return {
         ...p,
-        apiKey: (EncryptionService.verifyJWT(p.apiKey) as any).key
-      }
+        apiKey: (EncryptionService.verifyJWT(p.apiKey) as any).key,
+      };
     });
     const list = groupBy(all, (p) => p.category);
 
@@ -57,8 +53,8 @@ export class SetupController {
 
   @Post("/")
   async saveSettings(
-      @GetOrganizationFromRequest() organization: Organization,
-      @Body() body: SetupDto
+    @GetOrganizationFromRequest() organization: Organization,
+    @Body() body: SetupDto,
   ) {
     return this._modelsService.saveSettings(organization.id, body);
   }

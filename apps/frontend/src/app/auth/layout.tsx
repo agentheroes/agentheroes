@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Header } from "@frontend/components/header";
 
 export const metadata = {
   title: "Next.js",

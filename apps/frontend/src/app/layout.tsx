@@ -10,8 +10,8 @@ import { Header } from "@frontend/components/header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "AI Character Dashboard",
-  description: "Generate and manage AI characters for social media",
+  title: "Genius DEX - Trading Bot Platform",
+  description: "Advanced trading bot platform with AI-powered strategies",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -25,20 +25,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }, {});
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className={inter.className}>
         <EnvVariables value={availableList}>
           <FetchProviderComponent>
             <UserWrapper>
-              <div className="flex h-screen">
-                <Sidebar />
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <Header />
-                  <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
-                    {children}
-                  </main>
-                </div>
-              </div>
+              {children}
             </UserWrapper>
           </FetchProviderComponent>
         </EnvVariables>

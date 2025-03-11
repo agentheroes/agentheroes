@@ -8,7 +8,6 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/agentheroes
       - REDIS_URL=redis://redis:6379
-      - BACKEND_URL=http://localhost:3000
       - AUTH_SECRET=frjO/rySj/c8YF87JNH/aMsHQiZfwNgBeRuXpM8S7NI=
       - NODE_ENV=production
     depends_on:
