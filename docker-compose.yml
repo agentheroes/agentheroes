@@ -1,8 +1,7 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/agentheroes/agentheroes:latest
+    container_name: agent-heroes
     ports:
       - "4200:4200"
     environment:
@@ -19,7 +18,7 @@ services:
       - app-network
     volumes:
       - ./packages/backend/database:/app/packages/backend/database
-    restart: unless-stopped
+    restart: always
 
   postgres:
     image: postgres:15-alpine
