@@ -251,7 +251,7 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
                 // Find if this model belongs to the current service
                 if (generationData?.list) {
                   for (const categoryModels of Object.values(generationData.list)) {
-                    for (const model of categoryModels) {
+                    for (const model of categoryModels as any) {
                       if (model.model === modelId && model.identifier === identifier) {
                         return true;
                       }
