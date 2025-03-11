@@ -35,6 +35,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install and Start Docker (macOS Only)
+        if: runner.os == 'macOS'
+        run: |
+          brew install --cask docker
+          sudo ln -sf "/Applications/Docker.app/Contents/Resources/bin/docker" /usr/local/bin/docker
+          open -a Docker
+          while ! docker info &>/dev/null; do
+            echo "Waiting for Docker to start..."
+            sleep 2
+          done
+
       - name: Login to ghcr
         uses: docker/login-action@v3
         with:
