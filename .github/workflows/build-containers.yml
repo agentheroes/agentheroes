@@ -38,7 +38,7 @@ jobs:
       - name: Install and Start Docker (macOS Only)
         if: runner.os == 'macOS'
         run: |
-          brew install docker colima docker-buildx
+          brew install docker colima docker-buildx qemu
           colima start --vm-type qemu
 
       - name: Login to ghcr
