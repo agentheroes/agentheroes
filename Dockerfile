@@ -9,4 +9,4 @@ RUN pnpm run -r build
 
 EXPOSE 4200
 # Use pnpm run --parallel to start all applications with PM2 auto-restart
-CMD ["pnpm", "run", "start:pm2-parallel"]
+CMD ["pnpm", "run", "start:pm2"]

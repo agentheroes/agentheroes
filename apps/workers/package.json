@@ -4,10 +4,8 @@
   "description": "",
   "scripts": {
     "dev": "dotenv -e ../../.env -- nest start --watch --entryFile=./apps/workers/src/main",
-    "dev:pm2-single": "pm2-runtime ecosystem.dev.config.js",
     "build": "NODE_ENV=production nest build",
-    "start": "node ./dist/apps/workers/src/main.js",
-    "start:pm2-single": "pm2-runtime ecosystem.config.js && pm2 logs"
+    "start": "node ./dist/apps/workers/src/main.js"
   },
   "keywords": [],
   "author": "",
