@@ -1,7 +1,6 @@
 FROM node:20-alpine3.19
 RUN apk add --no-cache g++ make py3-pip
-RUN npm --no-update-notifier --no-fund --global install pnpm@10.6.1
-RUN npm --no-update-notifier --no-fund --global install pm2
+RUN npm --no-update-notifier --no-fund --global install pnpm@10.6.1 pm2
 
 COPY . /usr/src/app
 WORKDIR /usr/src/app
