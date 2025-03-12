@@ -8,5 +8,5 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run -r build
 
 EXPOSE 4200
-# Use pnpm run --parallel to start all applications with PM2 auto-restart
-CMD ["pnpm", "run", "start:pm2"]
+
+CMD ["pm2-runtime", "ecosystem.docker.config.js", "--attach"]
