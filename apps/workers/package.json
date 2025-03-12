@@ -7,7 +7,7 @@
     "dev:pm2-single": "pm2-runtime ecosystem.dev.config.js",
     "build": "NODE_ENV=production nest build",
     "start": "node ./dist/apps/workers/src/main.js",
-    "start:pm2-single": "pm2-runtime ecosystem.config.js"
+    "start:pm2-single": "pm2-runtime ecosystem.config.js && pm2 logs"
   },
   "keywords": [],
   "author": "",

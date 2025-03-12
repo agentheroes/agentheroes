@@ -6,7 +6,7 @@
     "dev": "dotenv -e ../../.env -- next dev -p 4200",
     "build": "next build",
     "start": "PORT=4200 next start",
-    "start:pm2-single": "pm2-runtime ecosystem.config.js"
+    "start:pm2-single": "pm2-runtime ecosystem.config.js && pm2 logs"
   },
   "keywords": [],
   "author": "",
