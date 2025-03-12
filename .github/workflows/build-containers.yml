@@ -54,7 +54,7 @@ jobs:
         run: |
           docker buildx build --platform linux/${{ matrix.arch }} \
             -t ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-${{ matrix.arch }} \
-            --push --output type=image
+            --push --output type=image .
 
   build-container-manifest:
     needs: [build-containers, build-containers-common]
