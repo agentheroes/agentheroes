@@ -54,7 +54,8 @@ jobs:
         run: |
           docker buildx build --platform linux/${{ matrix.arch }} \
             -t ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-${{ matrix.arch }} \
-            --push --output type=image .
+            --provenance=false --sbom=false \
+            --output "type=registry,name=ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-${{ matrix.arch }}" .
 
   build-container-manifest:
     needs: [build-containers, build-containers-common]
@@ -71,12 +72,25 @@ jobs:
         env:
           CONTAINERVER: ${{ needs.build-containers-common.outputs.containerver }}
         run: |
+          # Verify the architecture images
+          echo "Verifying AMD64 image:"
+          docker buildx imagetools inspect ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64
+          
+          echo "Verifying ARM64 image:"
+          docker buildx imagetools inspect ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
+          
+          # Try to remove any existing manifests first
+          docker manifest rm ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }} || true
+          docker manifest rm ghcr.io/agentheroes/agentheroes:latest || true
+          
+          # Create and push the version-specific manifest
           docker manifest create ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }} \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64 \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
 
           docker manifest push ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}
 
+          # Create and push the latest manifest
           docker manifest create ghcr.io/agentheroes/agentheroes:latest \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64 \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
