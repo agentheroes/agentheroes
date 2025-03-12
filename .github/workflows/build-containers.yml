@@ -35,6 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up QEMU (For ARM64 Builds)
+        if: matrix.arch == 'arm64'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -52,7 +53,8 @@ jobs:
           CONTAINERVER: ${{ needs.build-containers-common.outputs.containerver }}
         run: |
           docker buildx build --platform linux/${{ matrix.arch }} \
-            -t ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-${{ matrix.arch }} --push .
+            -t ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-${{ matrix.arch }} \
+            --push --output type=image
 
   build-container-manifest:
     needs: [build-containers, build-containers-common]
@@ -69,13 +71,13 @@ jobs:
         env:
           CONTAINERVER: ${{ needs.build-containers-common.outputs.containerver }}
         run: |
-          docker manifest create ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }} \
+          docker manifest create --purge ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }} \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64 \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
 
           docker manifest push ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}
 
-          docker manifest create ghcr.io/agentheroes/agentheroes:latest \
+          docker manifest create --purge ghcr.io/agentheroes/agentheroes:latest \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-amd64 \
             --amend ghcr.io/agentheroes/agentheroes:${{ env.CONTAINERVER }}-arm64
 
