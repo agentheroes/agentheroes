@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'workers',
-      script: './dist/apps/workers/src/main.js',
+      script: 'pnpm',
+      args: 'start',
       cwd: './',
       instances: 1,
       autorestart: true,

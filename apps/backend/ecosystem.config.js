@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'backend',
-      script: './dist/apps/backend/src/main.js',
+      script: 'pnpm',
+      args: 'start',
       cwd: './',
       instances: 1,
       autorestart: true,

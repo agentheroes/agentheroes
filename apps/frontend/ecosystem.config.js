@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'frontend',
-      script: '/node_modules/next/dist/bin/next',
+      script: 'pnpm',
       args: 'start',
       cwd: './',
       instances: 1,
