@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "pnpm run --parallel dev",
     "build": "pnpm run --parallel build",
-    "start": "pnpm run --parallel start",
+    "start": "pnpm run prisma-db-push && pnpm run --parallel start",
+    "start:pm2-parallel": "pnpm run prisma-db-push && pnpm run --parallel start:pm2-single",
     "postinstall": "pnpm run prisma-db-generate",
     "dev:backend": "rm -rf dist/backend && pnpm --filter ./apps/backend run dev",
     "dev:workers": "rm -rf dist/workers && pnpm --filter ./apps/workers run dev",
@@ -108,6 +109,7 @@
     "localtunnel": "^2.0.2",
     "mock-aws-s3": "^4.0.2",
     "nock": "^14.0.1",
+    "pm2": "^5.4.3",
     "postcss": "^8",
     "prettier": "^3.5.1",
     "readline": "^1.3.0",
