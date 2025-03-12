@@ -39,7 +39,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install docker colima docker-buildx qemu
-          colima start --cpu 3 --memory 6 --disk 100 --vm-type=qemu --mount-type=sshfs --dns=1.1.1.1
+          colima stop
+          colima delete
+          colima start --cpu 3 --memory 6 --disk 100 --vm-type=qemu --mount-type=sshfs --dns=1.1.1.1 --debug
           docker buildx create --use
 
       - name: Set up Docker Buildx
