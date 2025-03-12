@@ -39,7 +39,8 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install docker colima docker-buildx
-          colima start
+          rm -rf ~/.colima/_lima/_networks/user-v2
+          colima restart
           docker buildx create --use
 
       - name: Set up Docker Buildx
