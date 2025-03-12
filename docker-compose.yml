@@ -1,10 +1,7 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-#    image: ghcr.io/agentheroes/agentheroes:latest
-#    container_name: agent-heroes
+    image: ghcr.io/agentheroes/agentheroes:latest
+    container_name: agent-heroes
     ports:
       - "4200:4200"
     environment:
