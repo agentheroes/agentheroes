@@ -7,7 +7,7 @@
     "dev": "pnpm run --parallel dev",
     "build": "pnpm run --parallel build",
     "start": "pnpm run prisma-db-push && pnpm run --parallel start",
-    "start:pm2": "pm2-runtime ecosystem.docker.config.js --attach",
+    "pm2": "pm2 delete all || true && pnpm run --parallel pm2 && pm2 logs",
     "postinstall": "pnpm run prisma-db-generate",
     "dev:backend": "rm -rf dist/backend && pnpm --filter ./apps/backend run dev",
     "dev:workers": "rm -rf dist/workers && pnpm --filter ./apps/workers run dev",
