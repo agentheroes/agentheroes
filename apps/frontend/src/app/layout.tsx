@@ -32,8 +32,8 @@ const inter = localFont({
 });
 
 export const metadata = {
-  title: "Genius DEX - Trading Bot Platform",
-  description: "Advanced trading bot platform with AI-powered strategies",
+  title: "Agent Heroes",
+  description: "A platform for managing your AI characters",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

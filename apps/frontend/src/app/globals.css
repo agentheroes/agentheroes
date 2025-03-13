@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: 223 47% 11%;
+  --background: 0 0% 0%;
   --foreground: 0 0% 100%;
   --card: 224 71% 4%;
   --card-foreground: 213 31% 91%;
@@ -24,9 +24,6 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
