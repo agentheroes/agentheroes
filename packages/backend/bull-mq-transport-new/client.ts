@@ -1,8 +1,8 @@
-import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
-import { Queue, QueueEvents } from 'bullmq';
-import { v4 } from 'uuid';
-import { Injectable } from '@nestjs/common';
-import {ioRedis} from "@packages/backend/redis/redis.service";
+import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
+import { Queue, QueueEvents } from "bullmq";
+import { v4 } from "uuid";
+import { Injectable } from "@nestjs/common";
+import { ioRedis } from "@packages/backend/redis/redis.service";
 
 @Injectable()
 export class BullMqClient extends ClientProxy {
@@ -19,11 +19,11 @@ export class BullMqClient extends ClientProxy {
 
   publish(
     packet: ReadPacket<any>,
-    callback: (packet: WritePacket<any>) => void
+    callback: (packet: WritePacket<any>) => void,
   ) {
     // console.log('hello');
     // this.publishAsync(packet, callback);
-    return () => console.log('sent');
+    return () => console.log("sent");
   }
 
   delete(pattern: string, jobId: string) {
@@ -38,7 +38,7 @@ export class BullMqClient extends ClientProxy {
 
   async publishAsync(
     packet: ReadPacket<any>,
-    callback: (packet: WritePacket<any>) => void
+    callback: (packet: WritePacket<any>) => void,
   ) {
     const queue = this.getQueue(packet.pattern);
     const queueEvents = this.getQueueEvents(packet.pattern);
@@ -51,10 +51,10 @@ export class BullMqClient extends ClientProxy {
 
     try {
       await job.waitUntilFinished(queueEvents);
-      console.log('success');
+      console.log("success");
       callback({ response: job.returnvalue, isDisposed: true });
     } catch (err) {
-      console.log('err');
+      console.log("err");
       callback({ err, isDisposed: true });
     }
   }
@@ -78,9 +78,10 @@ export class BullMqClient extends ClientProxy {
   }
 
   async dispatchEvent(packet: ReadPacket<any>): Promise<any> {
-    console.log('event to dispatch: ', packet);
+    console.log("event to dispatch: ", packet);
     const queue = this.getQueue(packet.pattern);
-    if (packet.data.options.every) {
+
+    if (packet?.data?.options?.every) {
       const { every, immediately } = packet.data.options;
       const id = packet.data.id ?? v4();
       await queue.upsertJobScheduler(
@@ -93,7 +94,7 @@ export class BullMqClient extends ClientProxy {
             removeOnComplete: true,
             removeOnFail: true,
           },
-        }
+        },
       );
       return;
     }
@@ -104,9 +105,5 @@ export class BullMqClient extends ClientProxy {
       removeOnComplete: true,
       removeOnFail: true,
     });
-  }
-
-  unwrap<T = never>(): T {
-    throw new Error('Method not implemented.');
   }
 }

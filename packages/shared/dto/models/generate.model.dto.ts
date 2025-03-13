@@ -34,8 +34,12 @@ export class GenerateModelDto {
   @ValidateIf((o) => o.type === GenerationCategory.TRAINER)
   images: string[];
 
+  @IsUrl()
+  @ValidateIf((o) => o.type === GenerationCategory.TRAINER)
+  baseImage: string;
+
   @IsString()
-  @ValidateIf((o) => o.type === GenerationCategory.LOOK_A_LIKE_IMAGE)
+  @ValidateIf((o) => o.type === GenerationCategory.TRAINER)
   name: string;
 
   @IsUrl()

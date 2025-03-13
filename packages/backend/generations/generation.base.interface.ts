@@ -4,7 +4,7 @@ import { GenerationCategory } from "@packages/backend/generations/generation.cat
 export interface Input {
   apiKey: string;
   model: string;
-  text: string;
+  text?: string;
   image?: string;
   total: number;
   seed?: number;

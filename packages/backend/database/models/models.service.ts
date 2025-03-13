@@ -7,14 +7,20 @@ import { providersList } from "@packages/backend/generations/providers.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { groupBy } from "lodash";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
-import {GenerationService} from "@packages/backend/generations/generation.service";
+import { GenerationService } from "@packages/backend/generations/generation.service";
+import { CharactersService } from "@packages/backend/database/characters/characters.service";
+import { BullMqClient } from "@packages/backend/bull-mq-transport-new/client";
+import { Status } from "@prisma/client";
 
 @Injectable()
 export class ModelsService {
   constructor(
-      private _modelsRepository: ModelsRepository,
-      private _generationService: GenerationService
-  ) {}
+    private _modelsRepository: ModelsRepository,
+    private _generationService: GenerationService,
+    private _charactersService: CharactersService,
+    private _workerServiceProducer: BullMqClient,
+  ) {
+  }
 
   getAllModels() {
     return [...providersList];
@@ -72,6 +78,43 @@ export class ModelsService {
   }
 
   async generateLookALike(data: GenerateModelDto) {
-    return this._generationService.generateLookALike(data.model, data.prompt, data.image, 1);
+    return this._generationService.generateLookALike(
+      data.model,
+      data.prompt,
+      data.image,
+      1,
+    );
+  }
+
+  async trainModel(orgId: string, data: GenerateModelDto) {
+    const { id } = await this._charactersService.sendForTraining(orgId, data);
+
+    this._workerServiceProducer.emit("train", {
+      id: `train-${id}`,
+      payload: {
+        id,
+      },
+    });
+
+    return { id };
+  }
+
+  async processTrainModel(id: string) {
+    const loadCharacter = await this._charactersService.getCharacterById(id);
+    if (!loadCharacter) {
+      return;
+    }
+
+    try {
+      const lora = await this._generationService.trainCharacter(
+        loadCharacter.models,
+        JSON.parse(loadCharacter.images),
+      );
+
+      return this._charactersService.updateLora(id, lora, Status.COMPLETED);
+    } catch (err) {
+      console.log(err);
+      return this._charactersService.updateLora(id, null, Status.FAILED);
+    }
   }
 }

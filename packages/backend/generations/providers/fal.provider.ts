@@ -36,12 +36,13 @@ export class FalProvider extends GenerationBase {
     },
     {
       label: "Quick Trainer",
-      model: "fal-ai/fooocus",
+      model: "fal-ai/flux-lora-fast-training",
       category: GenerationCategory.TRAINER,
       mapInput: (input: Input) => ({
-        prompt: input.text,
-        total: input.total,
-        seed: input.seed,
+        images_data_url: input.image,
+        trigger_word: 'CHARACTER',
+        steps: 1000,
+        data_archive_format: 'zip',
       }),
     },
   ];
@@ -55,6 +56,24 @@ export class FalProvider extends GenerationBase {
     });
 
     return result.data.images.map((image: any) => image.url);
+  }
+
+  async trainImages(params: Input) {
+    const fal = await createFalInstance(params.apiKey);
+    const zipFile = await this.imagesToZip(params.images);
+    console.log('working');
+    const result = await fal.subscribe(params.model, {
+      input: {
+        ...this.transformRequest(params.model, {
+          image: zipFile,
+          total: 1,
+          model: params.model,
+          apiKey: params.apiKey,
+        }),
+      },
+    });
+
+    return result.data.diffusers_lora_file.url;
   }
 
   async testConnection(apiKey: string): Promise<boolean> {

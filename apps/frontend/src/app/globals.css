@@ -40,3 +40,8 @@
   border: 1px solid rgba(59, 130, 246, 0.1);
   border-radius: 16px;
 }
+
+.inner-btn * {
+  text-align: center;
+  color: white;
+}

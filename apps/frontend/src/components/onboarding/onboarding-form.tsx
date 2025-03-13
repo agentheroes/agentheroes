@@ -365,7 +365,6 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
             <Button 
               onClick={handleNext}
               disabled={!allCategoriesHaveSelection}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <span>Configure API Keys</span>
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -415,7 +414,6 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
             <Button 
               onClick={handleSubmit}
               disabled={!allRequiredKeysProvided}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Complete Setup
             </Button>

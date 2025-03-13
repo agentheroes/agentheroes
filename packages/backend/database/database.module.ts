@@ -9,6 +9,8 @@ import {
 } from "@packages/backend/database/prisma/prisma";
 import { ModelsRepository } from "@packages/backend/database/models/models.repository";
 import { ModelsService } from "@packages/backend/database/models/models.service";
+import { CharactersService } from "@packages/backend/database/characters/characters.service";
+import { CharactersRepository } from "@packages/backend/database/characters/characters.repository";
 
 @Global()
 @Module({
@@ -23,6 +25,8 @@ import { ModelsService } from "@packages/backend/database/models/models.service"
     UsersRepository,
     ModelsRepository,
     ModelsService,
+    CharactersService,
+    CharactersRepository,
   ],
   get exports() {
     return [...this.providers];

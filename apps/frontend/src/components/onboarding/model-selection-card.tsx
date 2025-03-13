@@ -39,7 +39,7 @@ export function ModelSelectionCard({
   };
 
   return (
-    <Card className="card-gradient">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {formattedCategory}
@@ -52,10 +52,10 @@ export function ModelSelectionCard({
           {models?.map((model) => {
             const isSelected = selectedModels.includes(model.model);
             return (
-              <div 
+              <Card
                 key={model.model} 
-                className={`relative group rounded-lg border border-border/50 p-4 cursor-pointer transition-all hover:border-primary/50 ${
-                  isSelected ? 'bg-accent border-primary/50' : ''
+                className={`relative group rounded-lg p-4 cursor-pointer transition-all hover:border-[#4D4D4D] ${
+                  isSelected ? 'bg-[#2E2E2E] border-[#4D4D4D]' : ''
                 }`}
                 onClick={() => onModelSelect(model.model)}
               >
@@ -70,7 +70,7 @@ export function ModelSelectionCard({
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
           

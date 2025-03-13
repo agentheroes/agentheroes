@@ -3,6 +3,7 @@ import { providersList } from "@packages/backend/generations/providers.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
 import { ModelsRepository } from "@packages/backend/database/models/models.repository";
+import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
 
 @Injectable()
 export class GenerationService {
@@ -72,5 +73,15 @@ export class GenerationService {
 
     // @ts-ignore
     return generate;
+  }
+
+  async trainCharacter(model: string, images: string[]) {
+    const providerAndApiKey = await this.providerAndApiKey(model);
+    return providerAndApiKey.provider.trainImages({
+      apiKey: providerAndApiKey.apiKey,
+      model: model,
+      images,
+      total: 1,
+    });
   }
 }

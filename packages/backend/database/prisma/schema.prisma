@@ -67,7 +67,7 @@ model Characters {
   images String
   models String
   lora String?
-  runEvery String
+  status Status
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -99,4 +99,10 @@ enum Role {
   SUPERADMIN
   ADMIN
   USER
+}
+
+enum Status {
+  IN_PROGESS
+  COMPLETED
+  FAILED
 }

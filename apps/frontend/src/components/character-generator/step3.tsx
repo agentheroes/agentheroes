@@ -52,8 +52,8 @@ export function CharacterGeneratorStep3({
         });
 
         // Get training models
-        if (response.list && response.list["image-training"]) {
-          setTrainingModels(response.list["image-training"]);
+        if (response.list && response.list["trainer"]) {
+          setTrainingModels(response.list["trainer"]);
         }
       } catch (err) {
         console.error("Error fetching training models:", err);
@@ -63,19 +63,19 @@ export function CharacterGeneratorStep3({
           {
             label: "Standard LoRA",
             model: "standard-lora",
-            category: "image-training",
+            category: "trainer",
             identifier: "internal",
           },
           {
             label: "High Quality LoRA",
             model: "high-quality-lora",
-            category: "image-training",
+            category: "trainer",
             identifier: "internal",
           },
           {
             label: "Fast Training LoRA",
             model: "fast-lora",
-            category: "image-training",
+            category: "trainer",
             identifier: "internal",
           },
         ];
@@ -111,6 +111,7 @@ export function CharacterGeneratorStep3({
     try {
       // Prepare the payload for the training request
       const trainingPayload = {
+        type: 'trainer',
         name: characterName,
         images: selectedImages,
         baseImage: baseImage.generated[0],

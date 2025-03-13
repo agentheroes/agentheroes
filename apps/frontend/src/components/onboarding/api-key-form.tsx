@@ -59,7 +59,7 @@ export function ApiKeyForm({
   };
 
   return (
-    <Card className="card-gradient">
+    <Card>
       <CardHeader>
         <CardTitle>AI Service Configuration</CardTitle>
         <CardDescription>

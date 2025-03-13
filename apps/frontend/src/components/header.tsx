@@ -8,7 +8,7 @@ import { Button } from "@frontend/components/ui/button";
 export function Header() {
   const pathname = usePathname();
   const { data: user } = useUser();
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.indexOf(path) > -1;
 
   return (
     <header className="h-[88px] px-[32px] bg-[#151515] flex items-center">
