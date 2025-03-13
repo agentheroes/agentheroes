@@ -8,6 +8,7 @@ export interface Input {
   image?: string;
   total: number;
   seed?: number;
+  images?: string[];
   previousImage?: string;
 }
 export interface GenerationImageInterface {

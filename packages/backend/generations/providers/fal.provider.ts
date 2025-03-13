@@ -34,6 +34,16 @@ export class FalProvider extends GenerationBase {
         seed: input.seed,
       }),
     },
+    {
+      label: "Quick Trainer",
+      model: "fal-ai/fooocus",
+      category: GenerationCategory.TRAINER,
+      mapInput: (input: Input) => ({
+        prompt: input.text,
+        total: input.total,
+        seed: input.seed,
+      }),
+    },
   ];
   async generateImage(params: Input) {
     const fal = await createFalInstance(params.apiKey);

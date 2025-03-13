@@ -1,5 +1,6 @@
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import {
+  IsArray,
   IsDefined,
   IsIn,
   IsNumber,
@@ -26,6 +27,16 @@ export class GenerateModelDto {
   @IsString()
   @IsDefined()
   model: string;
+
+  @IsString({ each: true })
+  @IsArray()
+  @IsDefined()
+  @ValidateIf((o) => o.type === GenerationCategory.TRAINER)
+  images: string[];
+
+  @IsString()
+  @ValidateIf((o) => o.type === GenerationCategory.LOOK_A_LIKE_IMAGE)
+  name: string;
 
   @IsUrl()
   @ValidateIf((o) => o.type === GenerationCategory.LOOK_A_LIKE_IMAGE)

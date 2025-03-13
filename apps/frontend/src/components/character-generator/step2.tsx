@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@frontend/components/ui/button";
 import { Spinner } from "@frontend/components/ui/spinner";
 import { Label } from "@frontend/components/ui/label";
@@ -21,19 +21,123 @@ interface ModelsResponse {
   list: {
     "normal-image": Model[];
     "look-a-like-image": Model[];
-    "video": Model[];
+    video: Model[];
   };
 }
 
 interface CharacterGeneratorStep2Props {
-  referenceImage: any; // Hidden reference image
-  baseImage: any; // Visible consistent character
+  referenceImage: any; // Hidden reference image (not used anymore)
+  baseImage: any; // Visible consistent character - now used as reference
   selectedImages: string[];
   lookAlikeModel: string;
   onLookAlikeModelSelect: (model: string) => void;
   onImagesSelected: (images: string[]) => void;
   onNext: () => void;
   onPrevious: () => void;
+  savedVariations?: Array<{num: number, image: string, selected: boolean}>;
+  onVariationsGenerated?: (variations: Array<{num: number, image: string, selected: boolean}>) => void;
+}
+
+// Component for individual variation box
+function VariationBox({
+  index,
+  baseImage,
+  lookAlikeModel,
+  isSelected,
+  onSelect,
+  savedImage = "",
+}: {
+  index: number;
+  baseImage: any;
+  lookAlikeModel: string;
+  isSelected: boolean;
+  onSelect: (imageUrl: string) => void;
+  savedImage?: string;
+}) {
+  const [isLoading, setIsLoading] = useState(savedImage ? false : true);
+  const [imageUrl, setImageUrl] = useState(savedImage || "");
+  const [error, setError] = useState("");
+  const fetch = useFetch();
+
+  useEffect(() => {
+    // If we already have a saved image, don't generate a new one
+    if (imageUrl) return;
+    
+    const generateVariation = async (retries = 0) => {
+      try {
+        const response = await fetch("/models/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "look-a-like-image",
+            model: lookAlikeModel,
+            prompt: "Generate a variation of this character",
+            image: baseImage.generated[0],
+            amount: 1,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to generate image: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setImageUrl(data.generated[0]);
+      } catch (err) {
+        if (retries < 3) {
+          return generateVariation(retries + 1);
+        }
+
+        console.error(`Error generating variation ${index}:`, err);
+        setError(
+          `Error: ${err instanceof Error ? err.message : "Failed to generate"}`,
+        );
+        setImageUrl(
+          `https://placehold.co/600x800/ff0000/ffffff?text=Error+${index + 1}`,
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    generateVariation(0);
+  }, []);
+
+  const handleClick = () => {
+    if (!isLoading && imageUrl) {
+      onSelect(imageUrl);
+    }
+  };
+
+  return (
+    <div
+      className={`relative border rounded-lg overflow-hidden ${
+        isLoading ? "cursor-not-allowed" : "cursor-pointer"
+      } ${isSelected ? "ring-4 ring-blue-500 border-blue-500" : ""}`}
+      onClick={handleClick}
+    >
+      {isLoading ? (
+        <div className="flex items-center justify-center h-48 bg-gray-50">
+          <Spinner className="h-8 w-8" />
+        </div>
+      ) : (
+        <>
+          <img
+            src={imageUrl}
+            alt={`Character variation ${index + 1}`}
+            className="w-full h-auto"
+          />
+          {isSelected && (
+            <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md">
+              ✓
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 export function CharacterGeneratorStep2({
@@ -45,15 +149,72 @@ export function CharacterGeneratorStep2({
   onImagesSelected,
   onNext,
   onPrevious,
+  savedVariations,
+  onVariationsGenerated,
 }: CharacterGeneratorStep2Props) {
   const [isLoadingModels, setIsLoadingModels] = useState(true);
   const [availableModels, setAvailableModels] = useState<Model[]>([]);
-  const [variations, setVariations] = useState<string[]>([]);
   const [error, setError] = useState("");
-  const [localSelected, setLocalSelected] = useState<string[]>(selectedImages);
-  const [loadingStates, setLoadingStates] = useState<boolean[]>(Array(10).fill(true));
-  const [isGeneratingVariations, setIsGeneratingVariations] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedUrls, setGeneratedUrls] = useState<string[]>([]);
   const fetch = useFetch();
+  const TOTAL_VARIATIONS = 2;
+  const NEEDED_VARIATIONS = 2;
+
+  // Initialize allVariations with savedVariations if available
+  const [allVariations, setAllVariations] = useState(
+    savedVariations && savedVariations.length > 0
+      ? savedVariations
+      : Array(TOTAL_VARIATIONS)
+          .fill(0)
+          .map((p, index) => ({ num: index, image: "", selected: false })),
+  );
+
+  // Update parent component when allVariations changes
+  useEffect(() => {
+    if (onVariationsGenerated) {
+      onVariationsGenerated(allVariations);
+    }
+  }, [allVariations, onVariationsGenerated]);
+
+  const resetVariations = useCallback(() => {
+    setAllVariations(
+      Array(TOTAL_VARIATIONS)
+        .fill(0)
+        .map((p, index) => ({ num: index, image: "", selected: false })),
+    );
+  }, [TOTAL_VARIATIONS]);
+
+  const localSelected = useMemo(() => {
+    return allVariations.filter((f) => f.selected && f.image);
+  }, [allVariations]);
+
+  const handleModelSelect = (model: string) => {
+    onLookAlikeModelSelect(model);
+    setGeneratedUrls([]);
+    setError("");
+  };
+
+  const startGeneratingVariations = useCallback(() => {
+    if (lookAlikeModel && baseImage) {
+      setIsGenerating(true);
+      resetVariations();
+    } else {
+      setError("Missing model or base image");
+    }
+  }, [lookAlikeModel, baseImage, resetVariations]);
+
+  // Automatically start generating variations when component mounts if look-alike model is selected
+  // and we don't have saved variations
+  useEffect(() => {
+    if (!isGenerating && lookAlikeModel && baseImage && !isLoadingModels && 
+        (!savedVariations || savedVariations.length === 0 || !savedVariations.some(v => v.image))) {
+      startGeneratingVariations();
+    } else if (savedVariations && savedVariations.length > 0 && savedVariations.some(v => v.image)) {
+      // If we have saved variations with images, set isGenerating to true to show the grid
+      setIsGenerating(true);
+    }
+  }, [lookAlikeModel, baseImage, isLoadingModels, isGenerating, startGeneratingVariations, savedVariations]);
 
   // Effect to fetch models only once on mount
   useEffect(() => {
@@ -61,25 +222,35 @@ export function CharacterGeneratorStep2({
       setIsLoadingModels(true);
       try {
         // Fetch models from the API
-        const response = await fetch('/models').then(res => {
+        const response = await fetch("/models").then((res) => {
           if (!res.ok) {
-            throw new Error('Failed to fetch models');
+            throw new Error("Failed to fetch models");
           }
           return res.json() as Promise<ModelsResponse>;
         });
-        
+
         // Filter for look-a-like-image models only
         setAvailableModels(response.list["look-a-like-image"]);
       } catch (err) {
         console.error("Error fetching models:", err);
         setError("Failed to load models. Please refresh the page.");
-        
+
         // Fallback to mock data in case the API fails
         const mockModels: Model[] = [
-          {"label": "Look-a-like Model 1", "model": "look-a-like/model1", "category": "look-a-like-image", "identifier": "fal"},
-          {"label": "Look-a-like Model 2", "model": "look-a-like/model2", "category": "look-a-like-image", "identifier": "replicate"}
+          {
+            label: "Look-a-like Model 1",
+            model: "look-a-like/model1",
+            category: "look-a-like-image",
+            identifier: "fal",
+          },
+          {
+            label: "Look-a-like Model 2",
+            model: "look-a-like/model2",
+            category: "look-a-like-image",
+            identifier: "replicate",
+          },
         ];
-        
+
         setAvailableModels(mockModels);
       } finally {
         setIsLoadingModels(false);
@@ -90,121 +261,40 @@ export function CharacterGeneratorStep2({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleModelSelect = (model: string) => {
-    onLookAlikeModelSelect(model);
-    // Clear previous variations when selecting a new model
-    setVariations([]);
-    setLocalSelected([]);
-    setError("");
-  };
+  const toggleImageSelection = (current: any) => (imageUrl: string) => {
+    if (!imageUrl) return;
 
-  const startGeneratingVariations = () => {
-    if (lookAlikeModel && referenceImage) {
-      setIsGeneratingVariations(true);
-      generateVariations();
-    } else {
-      setError("Missing model or reference image");
-    }
-  };
-
-  const generateVariations = async () => {
-    // Reset variations and set all containers to loading
-    setVariations([]);
-    setLoadingStates(Array(10).fill(true));
-    
-    // Process requests sequentially instead of in parallel
-    for (let i = 0; i < 10; i++) {
-      await generateSingleVariation(i);
-      // Optional: Add a small delay between requests to make the sequential loading more visible
-      await new Promise(resolve => setTimeout(resolve, 300));
-    }
-  };
-
-  const generateSingleVariation = async (index: number) => {
-    try {
-      // Send POST request to generate the variation using the reference image (not shown to user)
-      const response = await fetch('/models/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: "look-a-like-image",
-          model: lookAlikeModel,
-          prompt: "Generate a variation of this character",
-          image: referenceImage.generated[0], // Use the reference image instead of baseImage
-          amount: 1
-        }),
+    setAllVariations((prev) => {
+      return prev.map((p) => {
+        if (p.num === current.num) {
+          return { ...p, image: imageUrl, selected: !p.selected };
+        }
+        return p;
       });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to generate image: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Update the variations array with the new image
-      setVariations(prev => {
-        const newVariations = [...prev];
-        newVariations[index] = data.generated[0];
-        return newVariations;
-      });
-      
-      // Update loading state for this container
-      setLoadingStates(prev => {
-        const newLoadingStates = [...prev];
-        newLoadingStates[index] = false;
-        return newLoadingStates;
-      });
-    } catch (err) {
-      console.error(`Error generating variation ${index}:`, err);
-      
-      // Update loading state even on error
-      setLoadingStates(prev => {
-        const newLoadingStates = [...prev];
-        newLoadingStates[index] = false;
-        return newLoadingStates;
-      });
-      
-      // Add a placeholder for failed generations
-      setVariations(prev => {
-        const newVariations = [...prev];
-        newVariations[index] = `https://placehold.co/600x800/ff0000/ffffff?text=Error+${index + 1}`;
-        return newVariations;
-      });
-    }
-  };
-
-  const toggleImageSelection = (imageUrl: string, index: number) => {
-    // Don't allow selection if the image is still loading
-    if (loadingStates[index]) return;
-    
-    setLocalSelected((prev) => {
-      if (prev.includes(imageUrl)) {
-        return prev.filter((url) => url !== imageUrl);
-      } else {
-        return [...prev, imageUrl];
-      }
     });
   };
 
   const handleContinue = () => {
-    if (localSelected.length < 4) {
-      setError("Please select at least 4 more variations");
+    if (localSelected.length < NEEDED_VARIATIONS) {
+      setError(`Please select at least ${NEEDED_VARIATIONS} variations`);
       return;
     }
-    
+
     setError("");
-    onImagesSelected([...selectedImages, ...localSelected]);
+    onImagesSelected(
+      allVariations.filter((f) => f.selected && f.image).map((p) => p.image),
+    );
     onNext();
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Step 2: Select More Character Variations</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          Step 2: Select Character Variations
+        </h3>
         <p className="text-gray-500 mb-4">
-          Select at least 4 more variations that best match your character.
+          Select at least {NEEDED_VARIATIONS} variations that best match your character.
         </p>
       </div>
 
@@ -215,99 +305,53 @@ export function CharacterGeneratorStep2({
         </div>
       ) : (
         <>
-          <div>
-            <Label htmlFor="model">Look-a-like Model</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-              {availableModels.map((model) => (
-                <Button
-                  key={model.model}
-                  type="button"
-                  variant={lookAlikeModel === model.model ? "default" : "outline"}
-                  onClick={() => handleModelSelect(model.model)}
-                  className="justify-start h-auto py-3 px-4"
-                >
-                  <div className="text-left">
-                    <div className="font-medium">{model.label}</div>
-                    <div className="text-xs text-gray-500">{model.identifier}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
-
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="md:w-1/3">
+            <div className="md:w-full">
               <h4 className="font-medium mb-2">Your Character</h4>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-hidden max-w-xs mx-auto">
                 <img
                   src={baseImage.generated[0]}
                   alt="Your character"
                   className="w-full h-auto"
                 />
               </div>
-            </div>
-            
-            <div className="md:w-2/3">
-              <h4 className="font-medium mb-2">Selected Variations ({selectedImages.length})</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {selectedImages.slice(0, 3).map((imageUrl, index) => (
-                  <div key={index} className="border rounded-lg overflow-hidden">
-                    <img
-                      src={imageUrl}
-                      alt={`Selected variation ${index + 1}`}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                ))}
-                {selectedImages.length > 3 && (
-                  <div className="border rounded-lg overflow-hidden flex items-center justify-center bg-gray-100 text-gray-500 p-4">
-                    +{selectedImages.length - 3} more
-                  </div>
-                )}
-              </div>
+              <p className="text-sm text-gray-500 mt-2 text-center">
+                This character will be used as the reference for all variations
+              </p>
             </div>
           </div>
 
-          {!isGeneratingVariations ? (
+          {!isGenerating ? (
             <div className="flex justify-center mt-6">
-              <Button 
-                onClick={startGeneratingVariations}
-                disabled={!lookAlikeModel}
-                className="w-full md:w-auto"
-              >
-                Generate More Variations
-              </Button>
+              {error && (
+                <Button
+                  onClick={startGeneratingVariations}
+                  disabled={!lookAlikeModel}
+                  className="w-full md:w-auto"
+                >
+                  Retry Generating Variations
+                </Button>
+              )}
+              {!error && (
+                <div className="flex flex-col items-center">
+                  <Spinner className="h-8 w-8 mb-2" />
+                  <p className="text-sm text-gray-500">Automatically generating variations...</p>
+                </div>
+              )}
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Array(10).fill(0).map((_, index) => (
-                  <div 
-                    key={index}
-                    className={`relative border rounded-lg overflow-hidden cursor-pointer ${
-                      variations[index] && localSelected.includes(variations[index]) ? "ring-2 ring-blue-500" : ""
-                    }`}
-                    onClick={() => variations[index] && toggleImageSelection(variations[index], index)}
-                  >
-                    {loadingStates[index] ? (
-                      <div className="flex items-center justify-center h-48">
-                        <Spinner className="h-8 w-8" />
-                      </div>
-                    ) : (
-                      <>
-                        <img
-                          src={variations[index]}
-                          alt={`Character variation ${index + 1}`}
-                          className="w-full h-auto"
-                        />
-                        {variations[index] && localSelected.includes(variations[index]) && (
-                          <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                            ✓
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {allVariations.map((current, index) => (
+                  <VariationBox
+                    key={`variation-${index}`}
+                    index={index}
+                    baseImage={baseImage}
+                    lookAlikeModel={lookAlikeModel}
+                    isSelected={current.selected}
+                    onSelect={toggleImageSelection(current)}
+                    savedImage={current.image}
+                  />
                 ))}
               </div>
 
@@ -315,14 +359,19 @@ export function CharacterGeneratorStep2({
                 <Button variant="outline" onClick={onPrevious}>
                   Back
                 </Button>
-                <Button 
-                  onClick={handleContinue}
-                  disabled={localSelected.length < 4}
-                >
-                  Continue to Training
-                </Button>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">
+                    {localSelected.length} of {TOTAL_VARIATIONS} selected (min {NEEDED_VARIATIONS})
+                  </span>
+                  <Button
+                    onClick={handleContinue}
+                    disabled={localSelected.length < NEEDED_VARIATIONS}
+                  >
+                    Continue to Training
+                  </Button>
+                </div>
               </div>
-              
+
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
           )}
@@ -330,4 +379,4 @@ export function CharacterGeneratorStep2({
       )}
     </div>
   );
-} 
+}
