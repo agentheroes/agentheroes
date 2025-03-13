@@ -1,9 +1,10 @@
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import Replicate from "replicate";
-import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
+import { Input } from "@packages/backend/generations/generation.base.interface";
+import { GenerationBase } from "@packages/backend/generations/generation.base";
 
-export class ReplicateProvider implements GenerationBaseInterface {
+export class ReplicateProvider extends GenerationBase {
   identifier = GenerationIdentifiers.REPLICATE;
   models = [
     {
@@ -11,28 +12,32 @@ export class ReplicateProvider implements GenerationBaseInterface {
       model:
         "fofr/consistent-character:9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
       category: GenerationCategory.LOOK_A_LIKE_IMAGE,
+      mapInput: (params: Input) => {
+        return {
+          prompt: params.text,
+          subject: params.image,
+          output_format: "webp",
+          output_quality: 80,
+          negative_prompt: "",
+          randomise_poses: true,
+          number_of_outputs: 1,
+          number_of_images_per_pose: 1,
+        };
+      },
     },
   ];
-  async generateImage(
-    apiKey: string,
-    model: string,
-    text: string,
-    total: number,
-    seed?: number,
-    previousImage?: string,
-  ) {
+
+  async generateImage(params: Input) {
     const replicate = new Replicate({
-      auth: apiKey,
+      auth: params.apiKey,
     });
 
     // @ts-ignore
     const [output] = await replicate.run(
-      model as `${string}/${string}` | `${string}/${string}:${string}`,
+      params.model as `${string}/${string}` | `${string}/${string}:${string}`,
       {
         input: {
-          prompt: text,
-          total,
-          seed,
+          ...this.transformRequest(params.model, params),
         },
       },
     );
@@ -40,34 +45,21 @@ export class ReplicateProvider implements GenerationBaseInterface {
     return output;
   }
 
-  async generateLookALikeImages(
-    apiKey: string,
-    model: string,
-    text: string,
-    total: number,
-    image: string,
-    seed?: number,
-    previousImage?: string,
-  ) {
+  async generateLookALikeImages(params: Input) {
     const replicate = new Replicate({
-      auth: apiKey,
+      auth: params.apiKey,
       useFileOutput: false,
     });
 
-    const load = await replicate.run(model as `${string}/${string}` | `${string}/${string}:${string}`, {
-      input: {
-        prompt: text,
-        subject: image,
-        output_format: "webp",
-        output_quality: 80,
-        negative_prompt: "",
-        randomise_poses: true,
-        number_of_outputs: 1,
-        number_of_images_per_pose: 1
+    const load = await replicate.run(
+      params.model as `${string}/${string}` | `${string}/${string}:${string}`,
+      {
+        input: {
+          ...this.transformRequest(params.model, params),
+        },
       },
-    });
+    );
 
-    console.log(load);
     return load as any;
   }
 

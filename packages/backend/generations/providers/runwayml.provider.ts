@@ -1,9 +1,10 @@
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
-import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
+import { Input } from "@packages/backend/generations/generation.base.interface";
 import RunwayML from "@runwayml/sdk";
+import { GenerationBase } from "@packages/backend/generations/generation.base";
 
-export class RunwaymlProvider implements GenerationBaseInterface {
+export class RunwaymlProvider extends GenerationBase {
   identifier = GenerationIdentifiers.RUNWAYML;
   models = [
     {
@@ -11,28 +12,25 @@ export class RunwaymlProvider implements GenerationBaseInterface {
       model:
         "fofr/consistent-character:9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
       category: GenerationCategory.VIDEO,
+      mapInput: (input: Input) => ({
+        model: input.model as "gen3a_turbo",
+        // Point this at your own image file
+        promptImage: input.image,
+        promptText: input.text,
+        seed: input.seed,
+        duration: 5,
+        watermark: false,
+      }),
     },
   ];
-  async generateVideo(
-    apiKey: string,
-    model: string,
-    image: string,
-    text: string,
-    total: number,
-    seed?: number,
-  ) {
+
+  async generateVideo(params: Input) {
     const client = new RunwayML({
-      apiKey,
+      apiKey: params.apiKey,
     });
 
     const imageToVideo = await client.imageToVideo.create({
-      model: model as "gen3a_turbo",
-      // Point this at your own image file
-      promptImage: image,
-      promptText: text,
-      seed,
-      duration: 5,
-      watermark: false,
+      ...this.transformRequest(params.model, params),
     });
 
     const taskId = imageToVideo.id;
@@ -46,8 +44,8 @@ export class RunwaymlProvider implements GenerationBaseInterface {
       task = await client.tasks.retrieve(taskId);
     } while (!["SUCCEEDED", "FAILED"].includes(task.status));
 
-    if (task.status === 'FAILED') {
-      throw 'Can not generate';
+    if (task.status === "FAILED") {
+      throw "Can not generate";
     }
 
     return task.output;

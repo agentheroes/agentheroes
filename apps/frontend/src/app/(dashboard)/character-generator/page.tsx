@@ -11,9 +11,11 @@ export default function CharacterGeneratorPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedModel, setSelectedModel] = useState("");
   const [prompt, setPrompt] = useState("");
+  const [referenceImage, setReferenceImage] = useState("");
   const [generatedImage, setGeneratedImage] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [lookAlikeModel, setLookAlikeModel] = useState("");
 
   const handleNextStep = () => {
     setCurrentStep((prev) => prev + 1);
@@ -31,12 +33,20 @@ export default function CharacterGeneratorPage() {
     setPrompt(newPrompt);
   }, []);
 
+  const handleReferenceImageGenerated = (imageUrl: string) => {
+    setReferenceImage(imageUrl);
+  };
+
   const handleImageGenerated = (imageUrl: string) => {
     setGeneratedImage(imageUrl);
   };
 
   const handleImageSelection = (images: string[]) => {
     setSelectedImages(images);
+  };
+
+  const handleLookAlikeModelSelect = (model: string) => {
+    setLookAlikeModel(model);
   };
 
   const handleSubmitTraining = () => {
@@ -72,18 +82,26 @@ export default function CharacterGeneratorPage() {
             <CharacterGeneratorStep1
               selectedModel={selectedModel}
               prompt={prompt}
+              referenceImage={referenceImage}
               generatedImage={generatedImage}
+              lookAlikeModel={lookAlikeModel}
               onModelSelect={handleModelSelect}
               onPromptChange={handlePromptChange}
+              onReferenceImageGenerated={handleReferenceImageGenerated}
               onImageGenerated={handleImageGenerated}
+              onLookAlikeModelSelect={handleLookAlikeModelSelect}
+              onImagesSelected={handleImageSelection}
               onNext={handleNextStep}
             />
           )}
 
           {currentStep === 2 && (
             <CharacterGeneratorStep2
+              referenceImage={referenceImage}
               baseImage={generatedImage}
               selectedImages={selectedImages}
+              lookAlikeModel={lookAlikeModel}
+              onLookAlikeModelSelect={handleLookAlikeModelSelect}
               onImagesSelected={handleImageSelection}
               onNext={handleNextStep}
               onPrevious={handlePreviousStep}

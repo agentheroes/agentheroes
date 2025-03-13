@@ -1,6 +1,7 @@
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
-import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
+import { Input } from "@packages/backend/generations/generation.base.interface";
+import { GenerationBase } from "@packages/backend/generations/generation.base";
 
 async function createFalInstance(apiKey: string) {
   const { fal } = await import("@fal-ai/client");
@@ -10,35 +11,36 @@ async function createFalInstance(apiKey: string) {
   return fal;
 }
 
-export class FalProvider implements GenerationBaseInterface {
+export class FalProvider extends GenerationBase {
   identifier = GenerationIdentifiers.FAL;
   models = [
     {
       label: "Realistic People",
       model: "fal-ai/flux-pro/v1.1-ultra",
       category: GenerationCategory.NORMAL_IMAGE,
+      mapInput: (input: Input) => ({
+        prompt: input.text,
+        total: input.total,
+        seed: input.seed,
+      }),
     },
     {
       label: "Generic Image Generation",
       model: "fal-ai/fooocus",
       category: GenerationCategory.NORMAL_IMAGE,
+      mapInput: (input: Input) => ({
+        prompt: input.text,
+        total: input.total,
+        seed: input.seed,
+      }),
     },
   ];
-  async generateImage(
-    apiKey: string,
-    model: string,
-    text: string,
-    total: number,
-    seed?: number,
-    previousImage?: string,
-  ) {
-    const fal = await createFalInstance(apiKey);
+  async generateImage(params: Input) {
+    const fal = await createFalInstance(params.apiKey);
 
-    const result = await fal.subscribe(model, {
+    const result = await fal.subscribe(params.model, {
       input: {
-        prompt: text,
-        total,
-        seed,
+        ...this.transformRequest(params.model, params),
       },
     });
 

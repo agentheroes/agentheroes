@@ -1,47 +1,34 @@
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 
+export interface Input {
+  apiKey: string;
+  model: string;
+  text: string;
+  image?: string;
+  total: number;
+  seed?: number;
+  previousImage?: string;
+}
 export interface GenerationImageInterface {
-  generateImage?(
-    apiKey: string,
-    model: string,
-    text: string,
-    total: number,
-    seed?: number,
-    previousImage?: string,
-  ): Promise<Array<string | Buffer>>;
+  generateImage?(params: Input): Promise<Array<string | Buffer>>;
 }
 
 export interface GenerationVideoInterface {
-  generateVideo?(
-    apiKey: string,
-    model: string,
-    image: string,
-    text: string,
-    total: number,
-    seed?: number,
-  ): Promise<Array<string | Buffer>>;
+  generateVideo?(params: Input): Promise<Array<string | Buffer>>;
 }
 
 export interface GenerationBaseInterface
   extends GenerationImageInterface,
     GenerationVideoInterface {
   identifier: GenerationIdentifiers;
-  models: { label: string; model: string; category: GenerationCategory }[];
+  models: {
+    label: string;
+    model: string;
+    category: GenerationCategory;
+    mapInput?: (input: Input) => any;
+  }[];
   testConnection(apiKey: string): Promise<boolean>;
-  generateLookALikeImages?(
-    apiKey: string,
-    model: string,
-    text: string,
-    total: number,
-    image: string,
-    seed?: number,
-    previousImage?: string,
-  ): Promise<Array<string | Buffer>>;
-  trainImages?(
-    apiKey: string,
-    model: string,
-    images: string[],
-    text?: string,
-  ): Promise<string>;
+  generateLookALikeImages?(params: Input): Promise<Array<string | Buffer>>;
+  trainImages?(params: Input): Promise<string>;
 }

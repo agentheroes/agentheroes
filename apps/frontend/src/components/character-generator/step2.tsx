@@ -26,21 +26,26 @@ interface ModelsResponse {
 }
 
 interface CharacterGeneratorStep2Props {
-  baseImage: any;
+  referenceImage: any; // Hidden reference image
+  baseImage: any; // Visible consistent character
   selectedImages: string[];
+  lookAlikeModel: string;
+  onLookAlikeModelSelect: (model: string) => void;
   onImagesSelected: (images: string[]) => void;
   onNext: () => void;
   onPrevious: () => void;
 }
 
 export function CharacterGeneratorStep2({
+  referenceImage,
   baseImage,
   selectedImages,
+  lookAlikeModel,
+  onLookAlikeModelSelect,
   onImagesSelected,
   onNext,
   onPrevious,
 }: CharacterGeneratorStep2Props) {
-  const [selectedModel, setSelectedModel] = useState<string>("");
   const [isLoadingModels, setIsLoadingModels] = useState(true);
   const [availableModels, setAvailableModels] = useState<Model[]>([]);
   const [variations, setVariations] = useState<string[]>([]);
@@ -85,15 +90,8 @@ export function CharacterGeneratorStep2({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Effect to select the first model if none is selected
-  useEffect(() => {
-    if (!selectedModel && availableModels.length > 0) {
-      setSelectedModel(availableModels[0].model);
-    }
-  }, [availableModels, selectedModel]);
-
   const handleModelSelect = (model: string) => {
-    setSelectedModel(model);
+    onLookAlikeModelSelect(model);
     // Clear previous variations when selecting a new model
     setVariations([]);
     setLocalSelected([]);
@@ -101,9 +99,11 @@ export function CharacterGeneratorStep2({
   };
 
   const startGeneratingVariations = () => {
-    if (selectedModel && baseImage) {
+    if (lookAlikeModel && referenceImage) {
       setIsGeneratingVariations(true);
       generateVariations();
+    } else {
+      setError("Missing model or reference image");
     }
   };
 
@@ -122,7 +122,7 @@ export function CharacterGeneratorStep2({
 
   const generateSingleVariation = async (index: number) => {
     try {
-      // Send POST request to generate the variation
+      // Send POST request to generate the variation using the reference image (not shown to user)
       const response = await fetch('/models/generate', {
         method: 'POST',
         headers: {
@@ -130,9 +130,9 @@ export function CharacterGeneratorStep2({
         },
         body: JSON.stringify({
           type: "look-a-like-image",
-          model: selectedModel,
+          model: lookAlikeModel,
           prompt: "Generate a variation of this character",
-          image: baseImage.generated[0],
+          image: referenceImage.generated[0], // Use the reference image instead of baseImage
           amount: 1
         }),
       });
@@ -189,22 +189,22 @@ export function CharacterGeneratorStep2({
   };
 
   const handleContinue = () => {
-    if (localSelected.length < 7) {
-      setError("Please select at least 7 variations");
+    if (localSelected.length < 4) {
+      setError("Please select at least 4 more variations");
       return;
     }
     
     setError("");
-    onImagesSelected(localSelected);
+    onImagesSelected([...selectedImages, ...localSelected]);
     onNext();
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Step 2: Select Character Variations</h3>
+        <h3 className="text-lg font-semibold mb-4">Step 2: Select More Character Variations</h3>
         <p className="text-gray-500 mb-4">
-          Select at least 7 variations that best match your original character.
+          Select at least 4 more variations that best match your character.
         </p>
       </div>
 
@@ -216,13 +216,13 @@ export function CharacterGeneratorStep2({
       ) : (
         <>
           <div>
-            <Label htmlFor="model">Select Look-a-like Model</Label>
+            <Label htmlFor="model">Look-a-like Model</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
               {availableModels.map((model) => (
                 <Button
                   key={model.model}
                   type="button"
-                  variant={selectedModel === model.model ? "default" : "outline"}
+                  variant={lookAlikeModel === model.model ? "default" : "outline"}
                   onClick={() => handleModelSelect(model.model)}
                   className="justify-start h-auto py-3 px-4"
                 >
@@ -235,40 +235,70 @@ export function CharacterGeneratorStep2({
             </div>
           </div>
 
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="md:w-1/3">
+              <h4 className="font-medium mb-2">Your Character</h4>
+              <div className="border rounded-lg overflow-hidden">
+                <img
+                  src={baseImage.generated[0]}
+                  alt="Your character"
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
+            
+            <div className="md:w-2/3">
+              <h4 className="font-medium mb-2">Selected Variations ({selectedImages.length})</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {selectedImages.slice(0, 3).map((imageUrl, index) => (
+                  <div key={index} className="border rounded-lg overflow-hidden">
+                    <img
+                      src={imageUrl}
+                      alt={`Selected variation ${index + 1}`}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                ))}
+                {selectedImages.length > 3 && (
+                  <div className="border rounded-lg overflow-hidden flex items-center justify-center bg-gray-100 text-gray-500 p-4">
+                    +{selectedImages.length - 3} more
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {!isGeneratingVariations ? (
             <div className="flex justify-center mt-6">
               <Button 
                 onClick={startGeneratingVariations}
-                disabled={!selectedModel}
+                disabled={!lookAlikeModel}
                 className="w-full md:w-auto"
               >
-                Generate Variations
+                Generate More Variations
               </Button>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Array.from({ length: 10 }).map((_, index) => (
+                {Array(10).fill(0).map((_, index) => (
                   <div 
-                    key={index} 
-                    className={`relative border rounded-lg overflow-hidden ${
-                      loadingStates[index] ? "cursor-not-allowed" : "cursor-pointer"
-                    } ${
+                    key={index}
+                    className={`relative border rounded-lg overflow-hidden cursor-pointer ${
                       variations[index] && localSelected.includes(variations[index]) ? "ring-2 ring-blue-500" : ""
                     }`}
                     onClick={() => variations[index] && toggleImageSelection(variations[index], index)}
                   >
                     {loadingStates[index] ? (
-                      <div className="flex flex-col items-center justify-center h-48 bg-gray-100">
-                        <Spinner className="w-8 h-8 mb-2" />
-                        <p className="text-sm text-gray-500">Loading...</p>
+                      <div className="flex items-center justify-center h-48">
+                        <Spinner className="h-8 w-8" />
                       </div>
                     ) : (
                       <>
                         <img
                           src={variations[index]}
-                          alt={`Variation ${index + 1}`}
-                          className="w-full h-48 object-cover"
+                          alt={`Character variation ${index + 1}`}
+                          className="w-full h-auto"
                         />
                         {variations[index] && localSelected.includes(variations[index]) && (
                           <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
@@ -281,24 +311,19 @@ export function CharacterGeneratorStep2({
                 ))}
               </div>
 
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              
-              <div className="flex justify-between">
+              <div className="flex justify-between mt-6">
                 <Button variant="outline" onClick={onPrevious}>
                   Back
                 </Button>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">
-                    {localSelected.length} of 10 selected (min 7)
-                  </span>
-                  <Button 
-                    onClick={handleContinue}
-                    disabled={localSelected.length < 7}
-                  >
-                    Continue
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleContinue}
+                  disabled={localSelected.length < 4}
+                >
+                  Continue to Training
+                </Button>
               </div>
+              
+              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
           )}
         </>

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { providersList } from "@packages/backend/generations/providers.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
-import {ModelsRepository} from "@packages/backend/database/models/models.repository";
+import { ModelsRepository } from "@packages/backend/database/models/models.repository";
 
 @Injectable()
 export class GenerationService {
@@ -42,33 +42,33 @@ export class GenerationService {
     seed?: number,
   ) {
     const providerAndApiKey = await this.providerAndApiKey(model);
-    const generate = await providerAndApiKey.provider.generateImage(
-      providerAndApiKey.apiKey,
+    const generate = await providerAndApiKey.provider.generateImage({
+      apiKey: providerAndApiKey.apiKey,
       model,
       text,
       total,
       seed,
-    );
+    });
 
     return generate;
   }
 
   async generateLookALike(
-      model: string,
-      text: string,
-      image: string,
-      total: number,
-      seed?: number,
+    model: string,
+    text: string,
+    image: string,
+    total: number,
+    seed?: number,
   ) {
     const providerAndApiKey = await this.providerAndApiKey(model);
-    const generate = await providerAndApiKey.provider.generateLookALikeImages(
-        providerAndApiKey.apiKey,
-        model,
-        text,
-        total,
-        image,
-        seed,
-    );
+    const generate = await providerAndApiKey.provider.generateLookALikeImages({
+      apiKey: providerAndApiKey.apiKey,
+      model: model,
+      text: text,
+      total: total,
+      image: image,
+      seed: seed,
+    });
 
     // @ts-ignore
     return generate;
