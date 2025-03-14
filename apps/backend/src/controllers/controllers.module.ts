@@ -5,12 +5,14 @@ import { AuthMiddleware } from "@backend/services/auth/auth.middleware";
 import { SetupController } from "@backend/controllers/setup.controller";
 import { ModelsController } from "@backend/controllers/models.controller";
 import { CharactersController } from "@backend/controllers/characters.controller";
+import { MediaController } from "@backend/controllers/media.controller";
 
 const authControllers = [
   UsersController,
   SetupController,
   ModelsController,
   CharactersController,
+  MediaController,
 ];
 
 @Module({

@@ -84,9 +84,8 @@ model Media {
   characterId String
   character Characters @relation(fields: [characterId], references: [id])
   prompt String
-  text String?
-  image String?
-  video String?
+  media String
+  type  Type
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -104,6 +103,11 @@ enum Role {
   SUPERADMIN
   ADMIN
   USER
+}
+
+enum Type {
+  VIDEO
+  IMAGE
 }
 
 enum Status {

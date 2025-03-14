@@ -50,14 +50,13 @@ export class FalProvider extends GenerationBase {
       }),
       inferenceModel: "fal-ai/flux-lora",
       inferenceMapInput: (input: Inference) => ({
-        prompt: input.prompt,
+        prompt: 'CHARACTER ' + input.prompt,
         loras: [
           {
             path: input.lora,
             scale: 1,
           },
         ],
-        sync_mode: true,
         input: 1,
         enable_safety_checker: false,
         output_format: "png",

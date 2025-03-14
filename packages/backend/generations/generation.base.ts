@@ -25,7 +25,7 @@ export abstract class GenerationBase implements GenerationBaseInterface {
 
   transformInferenceRequest(model: string, input: Inference) {
     return (
-      this.models.find((p) => p.model === model)?.inferenceMapInput?.(input) || input
+      this.models.find((p) => p.inferenceModel === model)?.inferenceMapInput?.(input) || input
     );
   }
 

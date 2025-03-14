@@ -3,7 +3,7 @@ import { providersList } from "@packages/backend/generations/providers.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { GenerationBaseInterface } from "@packages/backend/generations/generation.base.interface";
 import { ModelsRepository } from "@packages/backend/database/models/models.repository";
-import { Characters } from "@prisma/client";
+import {Characters, Type} from "@prisma/client";
 import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
 
 @Injectable()
@@ -89,28 +89,23 @@ export class GenerationService {
   async generateCharacter(character: Characters, data: GenerateCharacterDto) {
     const providerAndApiKey = await this.providerAndApiKey(character.models);
 
-    const image = await providerAndApiKey.provider.generateInferenceImage({
-      apiKey: providerAndApiKey.apiKey,
-      prompt: data.prompt,
-      lora: character.lora,
-      model: providerAndApiKey.provider.models.find(
-        (p) => p.model === character.models,
-      ).inferenceModel,
-    });
-
-    const video =
-      data.type === "video"
-        ? (await providerAndApiKey.provider.generateVideo({
+    return (
+      data.type === Type.VIDEO
+        ? ((await providerAndApiKey.provider.generateVideo({
             apiKey: providerAndApiKey.apiKey,
             model: character.models,
             text: data.prompt,
+            image: data.image,
             total: 1,
-          })) as unknown
-        : null;
-
-    return {
-      image: image as string,
-      video: video as string|undefined,
-    }
+          })) as unknown)
+        : ((await providerAndApiKey.provider.generateInferenceImage({
+            apiKey: providerAndApiKey.apiKey,
+            prompt: data.prompt,
+            lora: character.lora,
+            model: providerAndApiKey.provider.models.find(
+              (p) => p.model === character.models,
+            ).inferenceModel,
+          }))[0] as unknown)
+    ) as string;
   }
 }

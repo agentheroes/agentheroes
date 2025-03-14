@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaRepository } from "@packages/backend/database/prisma/prisma";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
-import { Status } from "@prisma/client";
+import { Type } from "@prisma/client";
 
 @Injectable()
 export class MediaRepository {
@@ -11,15 +11,16 @@ export class MediaRepository {
     orgId: string,
     characterId: string,
     prompt: string,
-    information: { image: string; video?: string },
+    type: Type,
+    url: string,
   ) {
     return this._media.model.media.create({
       data: {
         organizationId: orgId,
         characterId,
         prompt,
-        image: information.image,
-        video: information.video,
+        media: url,
+        type,
       },
     });
   }
@@ -29,6 +30,21 @@ export class MediaRepository {
       where: {
         organizationId: orgId,
         deletedAt: null,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  deleteMedia(orgId: string, mediaId: string) {
+    return this._media.model.media.update({
+      where: {
+        id: mediaId,
+        organizationId: orgId,
+      },
+      data: {
+        deletedAt: new Date(),
       },
     });
   }

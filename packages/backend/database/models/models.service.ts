@@ -12,7 +12,7 @@ import { BullMqClient } from "@packages/backend/bull-mq-transport-new/client";
 import { Status } from "@prisma/client";
 import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
 import { CharactersService } from "@packages/backend/database/characters/characters.service";
-import {MediaService} from "@packages/backend/database/media/media.service";
+import { MediaService } from "@packages/backend/database/media/media.service";
 
 @Injectable()
 export class ModelsService {
@@ -132,11 +132,17 @@ export class ModelsService {
       throw new HttpBadRequestException();
     }
 
-    const information = await this._generationService.generateCharacter(
+    const url = await this._generationService.generateCharacter(
       character,
       data,
     );
 
-    return this._mediaService.saveMedia(orgId, characterId, data.prompt, information);
+    return this._mediaService.saveMedia(
+      orgId,
+      characterId,
+      data.prompt,
+      data.type,
+      url,
+    );
   }
 }
