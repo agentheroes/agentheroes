@@ -9,6 +9,8 @@ import {
 } from "@packages/backend/database/prisma/prisma";
 import { ModelsRepository } from "@packages/backend/database/models/models.repository";
 import { ModelsService } from "@packages/backend/database/models/models.service";
+import { MediaService } from "@packages/backend/database/media/media.service";
+import { MediaRepository } from "@packages/backend/database/media/media.repository";
 import { CharactersService } from "@packages/backend/database/characters/characters.service";
 import { CharactersRepository } from "@packages/backend/database/characters/characters.repository";
 
@@ -27,6 +29,8 @@ import { CharactersRepository } from "@packages/backend/database/characters/char
     ModelsService,
     CharactersService,
     CharactersRepository,
+    MediaService,
+    MediaRepository,
   ],
   get exports() {
     return [...this.providers];

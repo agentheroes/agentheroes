@@ -31,6 +31,7 @@ model Organization {
   updatedAt  DateTime           @updatedAt
   allowTrial Boolean            @default(false)
   character  Characters[]
+  media      Media[]
 }
 
 model UserOrganization {
@@ -78,8 +79,12 @@ model Characters {
 
 model Media {
   id String @id @default(uuid())
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
   characterId String
   character Characters @relation(fields: [characterId], references: [id])
+  prompt String
+  text String?
   image String?
   video String?
   createdAt      DateTime     @default(now())

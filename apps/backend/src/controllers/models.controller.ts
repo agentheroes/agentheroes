@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ModelsService } from "@packages/backend/database/models/models.service";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
+import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
 
 @Controller("/models")
 export class ModelsController {
@@ -29,5 +30,20 @@ export class ModelsController {
           generated: await this._modelsService.trainModel(org.id, data),
         };
     }
+  }
+
+  @Post("/generate/:characterId")
+  async generateCharacter(
+    @GetOrganizationFromRequest() org: Organization,
+    @Body() data: GenerateCharacterDto,
+    @Param("characterId") characterId: string,
+  ) {
+    return {
+      generated: await this._modelsService.generateCharacter(
+        org.id,
+        characterId,
+        data,
+      ),
+    };
   }
 }

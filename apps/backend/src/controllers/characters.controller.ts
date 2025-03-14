@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Param } from "@nestjs/common";
-import { CharactersService } from "@packages/backend/database/characters/characters.service";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
+import {CharactersService} from "@packages/backend/database/characters/characters.service";
 
 @Controller("/characters")
 export class CharactersController {

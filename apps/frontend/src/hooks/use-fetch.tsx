@@ -5,7 +5,7 @@ export const FetchContext = createContext({
   beforeRequest: (
     url: string,
     requestInit?: RequestInit,
-  ): Promise<RequestInit> => Promise.resolve(requestInit),
+  ): Promise<RequestInit> => Promise.resolve(requestInit!),
   afterRequest: (
     response: Response,
     url: string,
@@ -27,7 +27,7 @@ export const FetchProviderComponent: FC<{
           }
           return res;
         },
-        beforeRequest: (url, requestInit) => Promise.resolve(requestInit),
+        beforeRequest: (url, requestInit) => Promise.resolve(requestInit!),
       }}
     >
       {children}

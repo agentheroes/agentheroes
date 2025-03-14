@@ -1,6 +1,10 @@
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
-import { Input } from "@packages/backend/generations/generation.base.interface";
+import {
+  Inference,
+  Input,
+  ModelEntry,
+} from "@packages/backend/generations/generation.base.interface";
 import { GenerationBase } from "@packages/backend/generations/generation.base";
 
 async function createFalInstance(apiKey: string) {
@@ -40,9 +44,23 @@ export class FalProvider extends GenerationBase {
       category: GenerationCategory.TRAINER,
       mapInput: (input: Input) => ({
         images_data_url: input.image,
-        trigger_word: 'CHARACTER',
+        trigger_word: "CHARACTER",
         steps: 1000,
-        data_archive_format: 'zip',
+        data_archive_format: "zip",
+      }),
+      inferenceModel: "fal-ai/flux-lora",
+      inferenceMapInput: (input: Inference) => ({
+        prompt: input.prompt,
+        loras: [
+          {
+            path: input.lora,
+            scale: 1,
+          },
+        ],
+        sync_mode: true,
+        input: 1,
+        enable_safety_checker: false,
+        output_format: "png",
       }),
     },
   ];
@@ -58,10 +76,21 @@ export class FalProvider extends GenerationBase {
     return result.data.images.map((image: any) => image.url);
   }
 
+  async generateInferenceImage(params: Inference) {
+    const fal = await createFalInstance(params.apiKey);
+
+    const result = await fal.subscribe(params.model, {
+      input: {
+        ...this.transformInferenceRequest(params.model, params),
+      },
+    });
+
+    return result.data.images.map((image: any) => image.url);
+  }
+
   async trainImages(params: Input) {
     const fal = await createFalInstance(params.apiKey);
-    const zipFile = await this.imagesToZip(params.images);
-    console.log('working');
+    const zipFile = await this.imagesToZip(params.images!);
     const result = await fal.subscribe(params.model, {
       input: {
         ...this.transformRequest(params.model, {

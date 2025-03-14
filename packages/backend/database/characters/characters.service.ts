@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { CharactersRepository } from "@packages/backend/database/characters/characters.repository";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
-import {Status} from "@prisma/client";
+import { Status } from "@prisma/client";
+import { CharactersRepository } from "@packages/backend/database/characters/characters.repository";
 
 @Injectable()
 export class CharactersService {

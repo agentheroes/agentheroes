@@ -1,6 +1,7 @@
 import {
-  GenerationBaseInterface,
+  GenerationBaseInterface, Inference,
   Input,
+  ModelEntry,
 } from "@packages/backend/generations/generation.base.interface";
 import { GenerationIdentifiers } from "@packages/backend/generations/generation.identifiers";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
@@ -13,16 +14,18 @@ import { Readable } from "stream";
 export abstract class GenerationBase implements GenerationBaseInterface {
   upload = new UploadService();
   abstract identifier: GenerationIdentifiers;
-  abstract models: {
-    label: string;
-    model: string;
-    category: GenerationCategory;
-    mapInput?: (input: Input) => any;
-  }[];
+  abstract models: ModelEntry<GenerationCategory>[];
   abstract testConnection(apiKey: string): Promise<boolean>;
+
   transformRequest(model: string, input: Input) {
     return (
       this.models.find((p) => p.model === model)?.mapInput?.(input) || input
+    );
+  }
+
+  transformInferenceRequest(model: string, input: Inference) {
+    return (
+      this.models.find((p) => p.model === model)?.inferenceMapInput?.(input) || input
     );
   }
 

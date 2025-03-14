@@ -11,6 +11,14 @@ export interface Input {
   images?: string[];
   previousImage?: string;
 }
+
+export interface Inference {
+  apiKey: string;
+  model: string;
+  prompt: string;
+  lora: string;
+}
+
 export interface GenerationImageInterface {
   generateImage?(params: Input): Promise<Array<string | Buffer>>;
 }
@@ -19,17 +27,23 @@ export interface GenerationVideoInterface {
   generateVideo?(params: Input): Promise<Array<string | Buffer>>;
 }
 
+// Define model entry type based on category
+export type ModelEntry<C extends GenerationCategory> = {
+  label: string;
+  model: string;
+  category: C;
+  mapInput?: (input: Input) => any;
+  inferenceModel?: string;
+  inferenceMapInput?: (input: Inference) => any;
+};
+
 export interface GenerationBaseInterface
   extends GenerationImageInterface,
     GenerationVideoInterface {
   identifier: GenerationIdentifiers;
-  models: {
-    label: string;
-    model: string;
-    category: GenerationCategory;
-    mapInput?: (input: Input) => any;
-  }[];
+  models: ModelEntry<GenerationCategory>[];
   testConnection(apiKey: string): Promise<boolean>;
   generateLookALikeImages?(params: Input): Promise<Array<string | Buffer>>;
   trainImages?(params: Input): Promise<string>;
+  generateInferenceImage?(params: Inference): Promise<string>;
 }

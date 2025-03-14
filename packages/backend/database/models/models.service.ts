@@ -8,9 +8,11 @@ import { EncryptionService } from "@packages/backend/encryption/encryption.servi
 import { groupBy } from "lodash";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
 import { GenerationService } from "@packages/backend/generations/generation.service";
-import { CharactersService } from "@packages/backend/database/characters/characters.service";
 import { BullMqClient } from "@packages/backend/bull-mq-transport-new/client";
 import { Status } from "@prisma/client";
+import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
+import { CharactersService } from "@packages/backend/database/characters/characters.service";
+import {MediaService} from "@packages/backend/database/media/media.service";
 
 @Injectable()
 export class ModelsService {
@@ -18,9 +20,9 @@ export class ModelsService {
     private _modelsRepository: ModelsRepository,
     private _generationService: GenerationService,
     private _charactersService: CharactersService,
+    private _mediaService: MediaService,
     private _workerServiceProducer: BullMqClient,
-  ) {
-  }
+  ) {}
 
   getAllModels() {
     return [...providersList];
@@ -114,7 +116,27 @@ export class ModelsService {
       return this._charactersService.updateLora(id, lora, Status.COMPLETED);
     } catch (err) {
       console.log(err);
-      return this._charactersService.updateLora(id, null, Status.FAILED);
+      return this._charactersService.updateLora(id, "", Status.FAILED);
     }
+  }
+
+  async generateCharacter(
+    orgId: string,
+    characterId: string,
+    data: GenerateCharacterDto,
+  ) {
+    const character =
+      await this._charactersService.getCharacterById(characterId);
+
+    if (!character || character?.organizationId !== orgId) {
+      throw new HttpBadRequestException();
+    }
+
+    const information = await this._generationService.generateCharacter(
+      character,
+      data,
+    );
+
+    return this._mediaService.saveMedia(orgId, characterId, data.prompt, information);
   }
 }
