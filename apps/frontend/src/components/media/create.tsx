@@ -7,12 +7,28 @@ import { Textarea } from "@frontend/components/ui/textarea";
 import { useFetch } from "@frontend/hooks/use-fetch";
 import { useToast } from "@frontend/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Video } from "lucide-react";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@frontend/components/ui/dialog";
+import { Spinner } from "@frontend/components/ui/spinner";
 
 interface Character {
   id: string;
   name: string;
+}
+
+interface VideoModel {
+  label: string;
+  model: string;
+  category: string;
+  identifier: string;
 }
 
 export function MediaCreationPage() {
@@ -23,6 +39,12 @@ export function MediaCreationPage() {
   const [generatedImage, setGeneratedImage] = useState("");
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState("");
+  const [videoModels, setVideoModels] = useState<VideoModel[]>([]);
+  const [selectedVideoModel, setSelectedVideoModel] = useState("");
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [generatedVideo, setGeneratedVideo] = useState("");
+  const [showVideoDialog, setShowVideoDialog] = useState(false);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   const fetch = useFetch();
   const { toast } = useToast();
   const router = useRouter();
@@ -47,6 +69,50 @@ export function MediaCreationPage() {
     loadCharacters();
   }, []);
 
+  // Fetch video models
+  useEffect(() => {
+    const fetchVideoModels = async () => {
+      setIsLoadingModels(true);
+      try {
+        const response = await fetch("/models");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.list && data.list["video"]) {
+            setVideoModels(data.list["video"]);
+            if (data.list["video"].length > 0) {
+              setSelectedVideoModel(data.list["video"][0].model);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading video models:", error);
+        // Fallback to mock data in case the API fails
+        const mockVideoModels = [
+          {
+            label: "Standard Video",
+            model: "standard-video",
+            category: "video",
+            identifier: "runwayml",
+          },
+          {
+            label: "High Quality Video",
+            model: "high-quality-video",
+            category: "video",
+            identifier: "runwayml",
+          },
+        ];
+        setVideoModels(mockVideoModels);
+        if (mockVideoModels.length > 0) {
+          setSelectedVideoModel(mockVideoModels[0].model);
+        }
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+
+    fetchVideoModels();
+  }, []);
+
   const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value);
   }, []);
@@ -61,6 +127,10 @@ export function MediaCreationPage() {
 
   const handleCharacterSelect = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCharacter(e.target.value);
+  }, []);
+
+  const handleVideoModelSelect = useCallback((model: string) => {
+    setSelectedVideoModel(model);
   }, []);
 
   const handleGenerate = async () => {
@@ -114,11 +184,69 @@ export function MediaCreationPage() {
     }
   };
 
-  const handleSave = async () => {
+  const handleGenerateVideo = async () => {
     if (!generatedImage) {
       toast({
         title: "Error",
         description: "Please generate an image first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedVideoModel) {
+      toast({
+        title: "Error",
+        description: "Please select a video model",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingVideo(true);
+    try {
+      const response = await fetch(`/models/generate/${selectedCharacter}`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "VIDEO",
+          prompt,
+          videoModel: selectedVideoModel,
+          image: generatedImage
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedVideo(data.generated.media);
+        toast({
+          title: "Success",
+          description: "Video generated successfully",
+        });
+        setShowVideoDialog(false);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to generate video",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error generating video:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate video",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingVideo(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!generatedImage && !generatedVideo) {
+      toast({
+        title: "Error",
+        description: "Please generate an image or video first",
         variant: "destructive",
       });
       return;
@@ -132,6 +260,7 @@ export function MediaCreationPage() {
           characterId: selectedCharacter,
           prompt,
           image: generatedImage,
+          video: generatedVideo,
         }),
       });
 
@@ -249,6 +378,12 @@ export function MediaCreationPage() {
               <div className="w-full h-96 bg-[#0A0A0A] rounded-md flex items-center justify-center mb-4">
                 {isLoading ? (
                   <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+                ) : generatedVideo ? (
+                  <video 
+                    src={generatedVideo} 
+                    controls
+                    className="w-full h-full object-contain"
+                  />
                 ) : generatedImage ? (
                   <img 
                     src={generatedImage} 
@@ -257,10 +392,22 @@ export function MediaCreationPage() {
                   />
                 ) : (
                   <div className="text-center text-muted-foreground">
-                    <p>Your generated image will appear here</p>
+                    <p>Your generated media will appear here</p>
                   </div>
                 )}
               </div>
+              {generatedImage && !generatedVideo && (
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => setShowVideoDialog(true)}
+                    className="flex items-center"
+                    variant="outline"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Generate Video
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
           
@@ -273,7 +420,14 @@ export function MediaCreationPage() {
                 value={prompt}
                 onChange={handlePromptChange}
               />
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-between">
+                <Button 
+                  onClick={handleSave}
+                  disabled={isLoading || (!generatedImage && !generatedVideo)}
+                  variant="outline"
+                >
+                  Save
+                </Button>
                 <Button 
                   onClick={handleGenerate}
                   disabled={isLoading || !prompt}
@@ -285,6 +439,78 @@ export function MediaCreationPage() {
           </Card>
         </div>
       </div>
+
+      {/* Video Model Selection Dialog */}
+      <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Generate Video</DialogTitle>
+            <DialogDescription>
+              Select a video model to generate a video from your image.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {isLoadingModels ? (
+            <div className="flex items-center justify-center p-8">
+              <Spinner className="mr-2" />
+              <span>Loading video models...</span>
+            </div>
+          ) : (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 gap-3">
+                {videoModels.map((model) => (
+                  <div
+                    key={model.model}
+                    className={`border rounded-lg p-3 cursor-pointer transition-all hover:border-blue-500 ${
+                      selectedVideoModel === model.model ? 'bg-blue-50 border-blue-500 dark:bg-blue-900 dark:border-blue-400' : ''
+                    }`}
+                    onClick={() => handleVideoModelSelect(model.model)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{model.label}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Provider: {model.identifier}</div>
+                      </div>
+                      {selectedVideoModel === model.model && (
+                        <div className="flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                {videoModels.length === 0 && (
+                  <div className="text-center p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <p className="text-gray-500 dark:text-gray-400">No video models available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowVideoDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleGenerateVideo}
+              disabled={isGeneratingVideo || !selectedVideoModel}
+            >
+              {isGeneratingVideo ? (
+                <>
+                  <Spinner className="mr-2" />
+                  Generating...
+                </>
+              ) : (
+                "Generate Video"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

@@ -13,8 +13,7 @@ interface Media {
   characterId: string;
   prompt: string;
   text?: string;
-  image?: string;
-  video?: string;
+  media: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -145,10 +144,10 @@ export function MediaPage() {
                 </div>
                 
                 <div className="-mx-4 mt-4 flex-grow flex items-center justify-center">
-                  {media.image ? (
+                  {media.media ? (
                     <div className="w-full h-32 overflow-hidden border-2 border-[#3B3B3B]">
                       <img 
-                        src={media.image} 
+                        src={media.media}
                         alt={media.prompt} 
                         className="w-full h-full object-cover"
                         onError={(e) => {

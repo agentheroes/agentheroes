@@ -87,17 +87,17 @@ export class GenerationService {
   }
 
   async generateCharacter(character: Characters, data: GenerateCharacterDto) {
-    const providerAndApiKey = await this.providerAndApiKey(character.models);
+    const providerAndApiKey = await this.providerAndApiKey(data.videoModel || character.models);
 
     return (
       data.type === Type.VIDEO
         ? ((await providerAndApiKey.provider.generateVideo({
             apiKey: providerAndApiKey.apiKey,
-            model: character.models,
+            model: data.videoModel,
             text: data.prompt,
             image: data.image,
             total: 1,
-          })) as unknown)
+          }))[0] as unknown)
         : ((await providerAndApiKey.provider.generateInferenceImage({
             apiKey: providerAndApiKey.apiKey,
             prompt: data.prompt,

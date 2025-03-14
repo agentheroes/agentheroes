@@ -8,12 +8,12 @@ export class RunwaymlProvider extends GenerationBase {
   identifier = GenerationIdentifiers.RUNWAYML;
   models = [
     {
-      label: "Replicate Consistent Character",
+      label: "Gen3a Turbo",
       model:
-        "fofr/consistent-character:9c77a3c2f884193fcee4d89645f02a0b9def9434f9e03cb98460456b831c8772",
+        "gen3a_turbo",
       category: GenerationCategory.VIDEO,
       mapInput: (input: Input) => ({
-        model: input.model as "gen3a_turbo",
+        model: input.model as any,
         // Point this at your own image file
         promptImage: input.image,
         promptText: input.text,
