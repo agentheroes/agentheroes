@@ -1,9 +1,9 @@
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import {
-  IsArray,
+  IsArray, IsBoolean,
   IsDefined,
   IsIn,
-  IsNumber,
+  IsNumber, IsOptional,
   IsString,
   IsUrl,
   MinLength,
@@ -27,6 +27,10 @@ export class GenerateModelDto {
   @IsString()
   @IsDefined()
   model: string;
+
+  @IsOptional()
+  @IsBoolean()
+  saveAsMedia: boolean;
 
   @IsString({ each: true })
   @IsArray()

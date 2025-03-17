@@ -24,6 +24,7 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
   const [requiredServices, setRequiredServices] = useState<Set<string>>(new Set());
   const [validationError, setValidationError] = useState<string | null>(null);
   const [validApiKeys, setValidApiKeys] = useState<Record<string, boolean>>({});
+  const [serviceDocs, setServiceDocs] = useState<Record<string, string>>({});
 
   // Use the auto-validate hook to validate auto-populated API keys
   useAutoValidateApiKeys(apiKeys, validApiKeys, setValidApiKeys);
@@ -43,6 +44,7 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
               container: string;
               models: string;
               apiKey: string;
+              docs?: string;
             }>;
             list: Record<string, Array<{
               identifier: string;
@@ -53,6 +55,17 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
           };
           
           setGenerationData(data);
+          
+          // Extract docs URLs
+          const docsMap: Record<string, string> = {};
+          if (data.models && Array.isArray(data.models)) {
+            for (const model of data.models) {
+              if (model.docs && model.container) {
+                docsMap[model.container] = model.docs;
+              }
+            }
+            setServiceDocs(docsMap);
+          }
           
           // Populate form with existing data if available
           if (data.models && Array.isArray(data.models) && data.models.length > 0) {
@@ -199,27 +212,56 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
   };
 
   const handleNext = () => {
-    // Validate that each category has at least one model selected
-    const missingCategories = Object.values(GenerationCategory).filter(category => {
-      // Check if the category has models available
-      const hasAvailableModels = generationData?.list?.[category]?.length > 0;
-      // If models are available, check if at least one is selected
-      return hasAvailableModels && (!selectedModels[category] || selectedModels[category].length === 0);
-    });
-    
-    if (missingCategories.length > 0) {
-      const formattedCategories = missingCategories.map(category => 
-        category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-      ).join(', ');
-      
-      setValidationError(`Please select at least one model for each category: ${formattedCategories}`);
-      return;
-    }
-    
+    // Remove validation that requires model selection for each category
+    // Just proceed to the next step without any model selection validation
     setStep(2);
   };
 
   const handleSubmit = async () => {
+    // If no models are selected, we don't need to validate API keys
+    if (requiredServices.size === 0) {
+      try {
+        setLoading(true);
+        
+        // Send empty setup data to the backend
+        const setupData = {
+          list: [] as Array<{
+            identifier: string;
+            apiKey: string;
+            models: string[];
+          }>
+        };
+        
+        // Send the data to the backend
+        const response = await fetch("/setup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(setupData),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to save settings");
+        }
+        
+        // Call the onComplete callback if provided
+        if (onComplete) {
+          onComplete();
+        } else {
+          // Redirect or show success message
+          alert("Onboarding completed successfully!");
+        }
+      } catch (error: any) {
+        console.error("Error saving settings:", error);
+        setValidationError(error.message || "Failed to save settings. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     // Check if all API keys are valid
     const invalidServices = Array.from(requiredServices).filter(
       service => !validApiKeys[service]
@@ -302,18 +344,14 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
   }
 
   // Check if each category with available models has at least one selection
-  const allCategoriesHaveSelection = Object.values(GenerationCategory).every(category => {
-    // Check if the category has models available
-    const hasAvailableModels = generationData?.list?.[category]?.length > 0;
-    // If no models are available, we don't require a selection
-    if (!hasAvailableModels) return true;
-    // If models are available, check if at least one is selected
-    return selectedModels[category]?.length > 0;
-  });
+  // Updated to not require model selection
+  const allCategoriesHaveSelection = true; // No longer require selections to proceed
 
-  const allRequiredKeysProvided = Array.from(requiredServices).every(
-    service => apiKeys[service] && validApiKeys[service]
-  );
+  // Allow completion regardless of API key status if no models are selected
+  const allRequiredKeysProvided = requiredServices.size === 0 || 
+    Array.from(requiredServices).every(
+      service => apiKeys[service] && validApiKeys[service]
+    );
 
   return (
     <div className="space-y-8">
@@ -342,7 +380,8 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
             {Object.values(GenerationCategory).map((category) => {
               const hasModels = generationData?.list?.[category]?.length > 0;
               const hasSelection = selectedModels[category]?.length > 0;
-              const isRequired = hasModels && !hasSelection;
+              // Don't mark any categories as required
+              const isRequired = false;
               
               return (
                 <div key={category}>
@@ -398,6 +437,7 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
               apiKeys={apiKeys}
               onApiKeyChange={handleApiKeyChange}
               onValidationChange={handleValidationChange}
+              serviceDocs={serviceDocs}
             />
           </div>
           

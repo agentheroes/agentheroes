@@ -28,6 +28,14 @@ export class ModelsRepository {
         },
       });
     }
+
+    await this._models.model.models.deleteMany({
+      where: {
+        container: {
+          notIn: settings.list.map((p) => p.identifier),
+        },
+      },
+    });
   }
 
   async getModelsByIdentifier(identifier: string) {

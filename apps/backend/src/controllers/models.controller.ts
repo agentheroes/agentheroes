@@ -5,10 +5,14 @@ import { GenerationCategory } from "@packages/backend/generations/generation.cat
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
 import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
+import { MediaService } from "@packages/backend/database/media/media.service";
 
 @Controller("/models")
 export class ModelsController {
-  constructor(private _modelsService: ModelsService) {}
+  constructor(
+    private _modelsService: ModelsService,
+    private _mediaService: MediaService,
+  ) {}
 
   @Get("/")
   async list() {
@@ -20,18 +24,44 @@ export class ModelsController {
     @GetOrganizationFromRequest() org: Organization,
     @Body() data: GenerateModelDto,
   ) {
+    if (data.type === GenerationCategory.TRAINER) {
+      return {
+        generated: await this._modelsService.trainModel(org.id, data),
+      };
+    }
+    let output: { generated: (string | Buffer<ArrayBufferLike>)[] };
     switch (data.type) {
       case GenerationCategory.NORMAL_IMAGE:
-        return { generated: await this._modelsService.generateImage(data) };
+        output = { generated: await this._modelsService.generateImage(data) };
+        break;
       case GenerationCategory.LOOK_A_LIKE_IMAGE:
-        return { generated: await this._modelsService.generateLookALike(data) };
-      case GenerationCategory.VIDEO:
-        return { generated: await this._modelsService.generateVideo(data) };
-      case GenerationCategory.TRAINER:
-        return {
-          generated: await this._modelsService.trainModel(org.id, data),
+        output = {
+          generated: await this._modelsService.generateLookALike(data),
         };
+        break;
+      case GenerationCategory.VIDEO:
+        output = { generated: await this._modelsService.generateVideo(data) };
+        break;
     }
+
+    if (data.saveAsMedia) {
+      return {
+        generated: (
+          await Promise.all(
+            output.generated.map((p) => {
+              return this._mediaService.saveMedia(
+                org.id,
+                data.prompt,
+                data.type === "video" ? "VIDEO" : "IMAGE",
+                p as string,
+              );
+            }),
+          )
+        ).map((p) => p.media),
+      };
+    }
+
+    return output;
   }
 
   @Post("/generate/:characterId")

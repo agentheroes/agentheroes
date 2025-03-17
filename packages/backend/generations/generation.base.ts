@@ -16,6 +16,7 @@ export abstract class GenerationBase implements GenerationBaseInterface {
   abstract identifier: GenerationIdentifiers;
   abstract models: ModelEntry<GenerationCategory>[];
   abstract testConnection(apiKey: string): Promise<boolean>;
+  abstract docsLink: string;
 
   transformRequest(model: string, input: Input) {
     return (

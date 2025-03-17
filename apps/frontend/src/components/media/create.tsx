@@ -6,7 +6,7 @@ import { Button } from "@frontend/components/ui/button";
 import { Textarea } from "@frontend/components/ui/textarea";
 import { useFetch } from "@frontend/hooks/use-fetch";
 import { useToast } from "@frontend/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Spinner } from "@frontend/components/ui/spinner";
@@ -33,6 +33,11 @@ interface NormalModel {
 }
 
 export function MediaCreationPage() {
+  const searchParams = useSearchParams();
+  const characterParam = searchParams.get('character');
+  const sourceImageParam = searchParams.get('sourceImage');
+  const sourcePromptParam = searchParams.get('sourcePrompt');
+  
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("realism");
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +54,22 @@ export function MediaCreationPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  // Set source image if provided via URL params
+  useEffect(() => {
+    if (sourceImageParam) {
+      setGeneratedImage(decodeURIComponent(sourceImageParam));
+    }
+    
+    if (sourcePromptParam) {
+      setPrompt(decodeURIComponent(sourcePromptParam));
+    }
+    
+    // When coming from media list with an image, default to normal-image mode
+    if (sourceImageParam) {
+      setMode("normal-image");
+    }
+  }, [sourceImageParam, sourcePromptParam]);
+
   // Fetch characters for the dropdown
   useEffect(() => {
     const loadCharacters = async () => {
@@ -57,7 +78,12 @@ export function MediaCreationPage() {
         if (response.ok) {
           const data = await response.json();
           setCharacters(data);
-          if (data.length > 0) {
+          // If characterParam exists, set it as selected character
+          // Otherwise use the first character in the list
+          if (characterParam) {
+            setSelectedCharacter(characterParam);
+            setMode("character");
+          } else if (data.length > 0) {
             setSelectedCharacter(data[0].id);
           }
         }
@@ -67,7 +93,7 @@ export function MediaCreationPage() {
     };
 
     loadCharacters();
-  }, []);
+  }, [characterParam]);
 
   // Fetch normal models
   useEffect(() => {
@@ -181,6 +207,7 @@ export function MediaCreationPage() {
           body: JSON.stringify({
             prompt: `${prompt} in ${selectedStyle} style`,
             model: selectedNormalModel,
+            saveAsMedia: true,
             type: 'normal-image'
           }),
         });

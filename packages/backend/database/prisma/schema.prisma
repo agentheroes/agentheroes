@@ -81,8 +81,8 @@ model Media {
   id String @id @default(uuid())
   organizationId String
   organization Organization @relation(fields: [organizationId], references: [id])
-  characterId String
-  character Characters @relation(fields: [characterId], references: [id])
+  characterId String?
+  character Characters? @relation(fields: [characterId], references: [id])
   prompt String
   media String
   type  Type

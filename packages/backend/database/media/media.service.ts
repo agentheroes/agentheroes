@@ -12,10 +12,10 @@ export class MediaService {
 
   async saveMedia(
     orgId: string,
-    characterId: string,
     prompt: string,
     type: Type,
     url: string,
+    characterId?: string,
   ) {
     const upload = await this._uploadService.service.uploadSimple(url);
     return this._mediaRepository.saveMedia(

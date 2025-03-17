@@ -5,6 +5,7 @@ import RunwayML from "@runwayml/sdk";
 import { GenerationBase } from "@packages/backend/generations/generation.base";
 
 export class RunwaymlProvider extends GenerationBase {
+  docsLink = 'replicate.com/docs';
   identifier = GenerationIdentifiers.RUNWAYML;
   models = [
     {

@@ -13,6 +13,7 @@ import { Status } from "@prisma/client";
 import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
 import { CharactersService } from "@packages/backend/database/characters/characters.service";
 import { MediaService } from "@packages/backend/database/media/media.service";
+import { GenerationCategory } from "@packages/backend/generations/generation.category";
 
 @Injectable()
 export class ModelsService {
@@ -29,14 +30,14 @@ export class ModelsService {
   }
 
   async getModelsForClient(includePassword?: boolean) {
-    const all = providersList.flatMap((p) =>
-      p.models.map((m) => ({ ...m, identifier: p.identifier })),
-    );
-
     const models = (await this._modelsRepository.getModels()).map(
       ({ apiKey, ...all }) => {
+        const provider = providersList.find(
+          (p) => p.identifier === all.container,
+        );
         return {
           ...all,
+          docs: provider.docsLink,
           ...(includePassword
             ? { apiKey: (EncryptionService.verifyJWT(apiKey) as any).key }
             : {}),
@@ -44,7 +45,30 @@ export class ModelsService {
       },
     );
 
-    const list = groupBy(all, (p) => p.category);
+    const all = providersList.flatMap((p) =>
+      p.models
+        .map((m) => ({ ...m, identifier: p.identifier }))
+        .filter((f) => {
+          if (includePassword) {
+            return true;
+          }
+
+          return !!models.find(
+            (p) => JSON.parse(p.models).indexOf(f.model) > -1,
+          );
+        }),
+    );
+
+    const list = {
+      ...Object.values(GenerationCategory).reduce(
+        (all, current) => ({
+          ...all,
+          [current]: [],
+        }),
+        {},
+      ),
+      ...groupBy(all, (p) => p.category),
+    };
 
     return {
       models,
@@ -80,7 +104,12 @@ export class ModelsService {
   }
 
   async generateVideo(data: GenerateModelDto) {
-    return this._generationService.generateVideo(data.model, data.prompt, data.image, 1);
+    return this._generationService.generateVideo(
+      data.model,
+      data.prompt,
+      data.image,
+      1,
+    );
   }
 
   async generateLookALike(data: GenerateModelDto) {
@@ -143,10 +172,10 @@ export class ModelsService {
 
     return this._mediaService.saveMedia(
       orgId,
-      characterId,
       data.prompt,
       data.type,
       url,
+      characterId,
     );
   }
 }

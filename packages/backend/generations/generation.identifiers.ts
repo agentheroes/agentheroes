@@ -1,5 +1,6 @@
 export enum GenerationIdentifiers {
     REPLICATE = 'replicate',
     FAL = 'fal',
-    RUNWAYML = 'runwayml'
+    RUNWAYML = 'runwayml',
+    OPENAI = 'openai'
 }

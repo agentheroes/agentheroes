@@ -2,17 +2,13 @@
 
 import { Button } from "@frontend/components/ui/button";
 import Link from "next/link";
-import {
-  Plus,
-  Trash2,
-  Image,
-  Download,
-} from "lucide-react";
+import { Plus, Trash2, Image, Download, Wand2 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useFetch } from "@frontend/hooks/use-fetch";
 import { Card } from "@frontend/components/ui/card";
 import { useToast } from "@frontend/hooks/use-toast";
 import { saveAs } from "file-saver";
+import { OpenGeneratorButton } from "./open-generator-button";
 
 interface Media {
   id: string;
@@ -104,24 +100,11 @@ export function MediaPage() {
   // Function to download media
   const handleDownload = async (media: Media) => {
     try {
-      // // Get the file URL
-      // const url = media.media;
-      //
-      // // Create file extension based on media type
-      // const extension = media.type === "IMAGE" ? ".jpg" : ".mp4";
-      //
-      // // Create a temporary anchor element
-      // const link = document.createElement("a");
-      // link.href = url;
-      // link.download = `${media.prompt.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}_${media.id}${extension}`;
-      //
-      // console.log(link);
-      // // Append to body, click and remove
-      // document.body.appendChild(link);
-      // // link.click();
-      // document.body.removeChild(link);
-      saveAs(media.media, `${media.prompt.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}_${media.id}.${media.media.split('.').pop()}`);
-      
+      saveAs(
+        media.media,
+        `${media.prompt.substring(0, 20).replace(/[^a-z0-9]/gi, "_")}_${media.id}.${media.media.split(".").pop()}`,
+      );
+
       toast({
         title: "Success",
         description: `${media.type.toLowerCase()} downloaded successfully`,
@@ -147,7 +130,9 @@ export function MediaPage() {
       if (videoElement.currentTime > 0) {
         videoElement.currentTime = 0;
       }
-      videoElement.play().catch(err => console.error("Error playing video:", err));
+      videoElement
+        .play()
+        .catch((err) => console.error("Error playing video:", err));
     }
   };
 
@@ -207,6 +192,13 @@ export function MediaPage() {
                         <Download className="h-4 w-4" />
                       </Button>
                     )}
+                    {media.media && media.type === "IMAGE" && (
+                      <OpenGeneratorButton 
+                        mediaId={media.id}
+                        imageUrl={media.media}
+                        prompt={media.prompt}
+                      />
+                    )}
                     <Button
                       variant={
                         deleteConfirm === media.id ? "destructive" : "ghost"
@@ -247,8 +239,12 @@ export function MediaPage() {
                           muted
                           loop
                           playsInline
-                          onMouseEnter={(e) => handleVideoMouseEnter(e.currentTarget)}
-                          onMouseLeave={(e) => handleVideoMouseLeave(e.currentTarget)}
+                          onMouseEnter={(e) =>
+                            handleVideoMouseEnter(e.currentTarget)
+                          }
+                          onMouseLeave={(e) =>
+                            handleVideoMouseLeave(e.currentTarget)
+                          }
                         />
                       )}
                     </div>

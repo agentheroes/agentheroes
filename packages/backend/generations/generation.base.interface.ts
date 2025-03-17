@@ -46,4 +46,5 @@ export interface GenerationBaseInterface
   generateLookALikeImages?(params: Input): Promise<Array<string | Buffer>>;
   trainImages?(params: Input): Promise<string>;
   generateInferenceImage?(params: Inference): Promise<string>;
+  generateText?(params: Input): Promise<string>;
 }

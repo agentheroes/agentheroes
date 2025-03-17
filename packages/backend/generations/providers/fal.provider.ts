@@ -16,6 +16,7 @@ async function createFalInstance(apiKey: string) {
 }
 
 export class FalProvider extends GenerationBase {
+  docsLink = 'docs.fal.ai';
   identifier = GenerationIdentifiers.FAL;
   models = [
     {
@@ -39,6 +40,15 @@ export class FalProvider extends GenerationBase {
       }),
     },
     {
+      label: "Veo2",
+      model: "fal-ai/veo2/image-to-video",
+      category: GenerationCategory.VIDEO,
+      mapInput: (input: Input) => ({
+        prompt: input.text,
+        image_url: input.image,
+      }),
+    },
+    {
       label: "Quick Trainer",
       model: "fal-ai/flux-lora-fast-training",
       category: GenerationCategory.TRAINER,
@@ -50,7 +60,7 @@ export class FalProvider extends GenerationBase {
       }),
       inferenceModel: "fal-ai/flux-lora",
       inferenceMapInput: (input: Inference) => ({
-        prompt: 'CHARACTER ' + input.prompt,
+        prompt: "CHARACTER " + input.prompt,
         loras: [
           {
             path: input.lora,
@@ -73,6 +83,18 @@ export class FalProvider extends GenerationBase {
     });
 
     return result.data.images.map((image: any) => image.url);
+  }
+
+  async generateVideo(params: Input) {
+    const fal = await createFalInstance(params.apiKey);
+
+    const result = await fal.subscribe(params.model, {
+      input: {
+        ...this.transformRequest(params.model, params),
+      },
+    });
+
+    return [result.data.video.url];
   }
 
   async generateInferenceImage(params: Inference) {

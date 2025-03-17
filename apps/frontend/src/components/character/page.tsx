@@ -2,11 +2,12 @@
 
 import { Button } from "@frontend/components/ui/button";
 import Link from "next/link";
-import { Plus, Trash2, User, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Plus, Trash2, User, Clock, CheckCircle, AlertCircle, Image } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetch } from "@frontend/hooks/use-fetch";
 import { Card } from "@frontend/components/ui/card";
 import { useToast } from "@frontend/hooks/use-toast";
+import { GenerateMediaButton } from "./generate-media-button";
 
 type CharacterStatus = "IN_PROGESS" | "COMPLETED" | "FAILED";
 
@@ -176,17 +177,25 @@ export function CharactersPage() {
                       </div>
                     )}
                   </div>
-                  <Button
-                    variant={deleteConfirm === character.id ? "destructive" : "ghost"}
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(character.id);
-                    }}
-                    className="h-8 w-8 !p-0"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <GenerateMediaButton 
+                      characterId={character.id}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 !p-0"
+                    />
+                    <Button
+                      variant={deleteConfirm === character.id ? "destructive" : "ghost"}
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(character.id);
+                      }}
+                      className="h-8 w-8 !p-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="-mx-4 mt-4 flex-grow flex items-center justify-center">

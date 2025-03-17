@@ -11,6 +11,7 @@ interface ApiKeyFormProps {
   apiKeys: Record<string, string>;
   onApiKeyChange: (service: string, value: string) => void;
   onValidationChange?: (service: string, isValid: boolean) => void;
+  serviceDocs?: Record<string, string>;
 }
 
 export function ApiKeyForm({
@@ -18,6 +19,7 @@ export function ApiKeyForm({
   apiKeys,
   onApiKeyChange,
   onValidationChange,
+  serviceDocs = {},
 }: ApiKeyFormProps) {
   const { validationResults, validateApiKey } = useApiKeyValidation();
 
@@ -37,25 +39,10 @@ export function ApiKeyForm({
 
   // Get service description and link
   const getServiceInfo = (service: string) => {
-    const info: Record<string, { description: string; link: string }> = {
-      'openai': {
-        description: 'Used for content generation and news processing',
-        link: 'https://platform.openai.com/api-keys'
-      },
-      'stability': {
-        description: 'Used for character generation and image training',
-        link: 'https://platform.stability.ai/docs/getting-started/authentication'
-      },
-      'runwayml': {
-        description: 'Used for video generation and animation',
-        link: 'https://docs.runwayml.com/docs/authentication'
-      },
-      'replicate': {
-        description: 'Used for various AI models and LoRA training',
-        link: 'https://replicate.com/docs/reference/http#authentication'
-      }
+    return {
+      description: 'Find the API keys here: ',
+      link: serviceDocs[service] || ''
     };
-    return info[service] || { description: '', link: '' };
   };
 
   return (
@@ -83,14 +70,16 @@ export function ApiKeyForm({
               </Label>
               <p className="text-sm text-muted-foreground mb-2">
                 {serviceInfo.description}{' '}
-                <a 
-                  href={serviceInfo.link} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Get API Key
-                </a>
+                {serviceInfo.link && (
+                  <a 
+                    href={`https://${serviceInfo.link}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    Get API Key
+                  </a>
+                )}
               </p>
               <div className="relative">
                 <Input

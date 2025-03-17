@@ -38,16 +38,6 @@ export function Header() {
             <span>Media</span>
           </Link>
           <Link
-            href="/news-feed"
-            className={`hover:bg-black border hover:border-[#333] rounded-[10px] px-[24px] py-[14px] flex items-center gap-2 text-sm font-medium ${
-              isActive("/news-feed")
-                ? "text-white bg-black border border-[#333] font-[500]"
-                : "border-[#151515] text-[#7E7E81] hover:text-white"
-            }`}
-          >
-            <span>News Feed</span>
-          </Link>
-          <Link
             href="/calendar"
             className={`hover:bg-black border hover:border-[#333] rounded-[10px] px-[24px] py-[14px] flex items-center gap-2 text-sm font-medium ${
               isActive("/calendar")
@@ -56,6 +46,16 @@ export function Header() {
             }`}
           >
             <span>Content Calendar</span>
+          </Link>
+          <Link
+            href="/agents"
+            className={`hover:bg-black border hover:border-[#333] rounded-[10px] px-[24px] py-[14px] flex items-center gap-2 text-sm font-medium ${
+              isActive("/news-feed")
+                ? "text-white bg-black border border-[#333] font-[500]"
+                : "border-[#151515] text-[#7E7E81] hover:text-white"
+            }`}
+          >
+            <span>Agents</span>
           </Link>
         </nav>
         {user?.isSuperAdmin && (

@@ -5,6 +5,7 @@ import { Input } from "@packages/backend/generations/generation.base.interface";
 import { GenerationBase } from "@packages/backend/generations/generation.base";
 
 export class ReplicateProvider extends GenerationBase {
+  docsLink = 'docs.runwayml.com';
   identifier = GenerationIdentifiers.REPLICATE;
   models = [
     {
