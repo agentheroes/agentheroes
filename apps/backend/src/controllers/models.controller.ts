@@ -25,6 +25,8 @@ export class ModelsController {
         return { generated: await this._modelsService.generateImage(data) };
       case GenerationCategory.LOOK_A_LIKE_IMAGE:
         return { generated: await this._modelsService.generateLookALike(data) };
+      case GenerationCategory.VIDEO:
+        return { generated: await this._modelsService.generateVideo(data) };
       case GenerationCategory.TRAINER:
         return {
           generated: await this._modelsService.trainModel(org.id, data),

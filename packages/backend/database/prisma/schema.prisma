@@ -111,7 +111,7 @@ enum Type {
 }
 
 enum Status {
-  IN_PROGESS
+  IN_PROGRESS
   COMPLETED
   FAILED
 }

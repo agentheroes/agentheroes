@@ -15,7 +15,7 @@ export class CharactersRepository {
         models: model.model,
         avatar: model.baseImage,
         organizationId: orgId,
-        status: "IN_PROGESS",
+        status: "IN_PROGRESS",
       },
     });
   }

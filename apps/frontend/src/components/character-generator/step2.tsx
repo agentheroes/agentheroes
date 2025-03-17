@@ -233,25 +233,8 @@ export function CharacterGeneratorStep2({
         setAvailableModels(response.list["look-a-like-image"]);
       } catch (err) {
         console.error("Error fetching models:", err);
-        setError("Failed to load models. Please refresh the page.");
-
-        // Fallback to mock data in case the API fails
-        const mockModels: Model[] = [
-          {
-            label: "Look-a-like Model 1",
-            model: "look-a-like/model1",
-            category: "look-a-like-image",
-            identifier: "fal",
-          },
-          {
-            label: "Look-a-like Model 2",
-            model: "look-a-like/model2",
-            category: "look-a-like-image",
-            identifier: "replicate",
-          },
-        ];
-
-        setAvailableModels(mockModels);
+        setError("Failed to load models. Please refresh the page or check your connection.");
+        setAvailableModels([]);
       } finally {
         setIsLoadingModels(false);
       }

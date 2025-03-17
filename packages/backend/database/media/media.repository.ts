@@ -9,7 +9,7 @@ export class MediaRepository {
 
   saveMedia(
     orgId: string,
-    characterId: string,
+    characterId: string | null,
     prompt: string,
     type: Type,
     url: string,

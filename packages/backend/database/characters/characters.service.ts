@@ -2,13 +2,23 @@ import { Injectable } from "@nestjs/common";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
 import { Status } from "@prisma/client";
 import { CharactersRepository } from "@packages/backend/database/characters/characters.repository";
+import { UploadService } from "@packages/backend/upload/upload.service";
 
 @Injectable()
 export class CharactersService {
-  constructor(private _charactersRepository: CharactersRepository) {}
+  constructor(
+    private _charactersRepository: CharactersRepository,
+    private _uploadService: UploadService,
+  ) {}
 
   async sendForTraining(orgId: string, model: GenerateModelDto) {
-    return this._charactersRepository.createTraining(orgId, model);
+    const uploadBaseImage = await this._uploadService.service.uploadSimple(
+      model.baseImage,
+    );
+    return this._charactersRepository.createTraining(orgId, {
+      ...model,
+      baseImage: uploadBaseImage,
+    });
   }
 
   async getCharacterById(id: string) {

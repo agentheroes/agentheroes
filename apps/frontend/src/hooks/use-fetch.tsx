@@ -46,7 +46,9 @@ export const useFetch = () => {
       ...loadRequest,
       headers: {
         ...requestInit?.headers,
-        "Content-Type": "application/json",
+        ...(requestInit?.body && requestInit?.body instanceof FormData
+          ? {}
+          : { "Content-Type": "application/json" }),
       },
     });
 

@@ -1,8 +1,6 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import 'multer';
-import {extension as findExtnsion} from 'mime-types';
-// @ts-ignore
-import { getExtension } from 'mime';
+import {extension as findExtension} from 'mime-types';
 import { IUploadProvider } from './upload.interface';
 import axios from 'axios';
 import {makeId} from "@packages/backend/encryption/make.id";
@@ -62,7 +60,7 @@ class CloudflareStorage implements IUploadProvider {
     const contentType =
       loadImage?.headers?.['content-type'] ||
       loadImage?.headers?.['Content-Type'];
-    const extension = getExtension(contentType)!;
+    const extension = findExtension(contentType)!;
     const id = makeId(10);
 
     const params = {
@@ -81,7 +79,7 @@ class CloudflareStorage implements IUploadProvider {
 
   async uploadFile(file: Express.Multer.File): Promise<any> {
     const id = makeId(10);
-    const extension = findExtnsion(file.mimetype) || '';
+    const extension = findExtension(file.mimetype) || '';
 
     // Create the PutObjectCommand to upload the file to Cloudflare R2
     const command = new PutObjectCommand({

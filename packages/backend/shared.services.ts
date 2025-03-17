@@ -1,6 +1,7 @@
 import { Global, Module } from "@nestjs/common";
 import {EmailService} from "@packages/backend/email/email.service";
 import {GenerationService} from "@packages/backend/generations/generation.service";
+import {UploadService} from "@packages/backend/upload/upload.service";
 
 @Global()
 @Module({
@@ -8,7 +9,8 @@ import {GenerationService} from "@packages/backend/generations/generation.servic
     controllers: [],
     providers: [
         EmailService,
-        GenerationService
+        GenerationService,
+        UploadService
     ],
     get exports() {
         return [...this.providers];

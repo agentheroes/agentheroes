@@ -2,7 +2,7 @@ import type React from "react";
 import { Header } from "@frontend/components/header";
 
 export const metadata = {
-  title: "AI Character Dashboard",
+  title: "Agent Heroes",
   description: "Generate and manage AI characters for social media",
 };
 

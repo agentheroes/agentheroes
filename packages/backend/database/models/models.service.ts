@@ -79,6 +79,10 @@ export class ModelsService {
     return this._generationService.generatePicture(data.model, data.prompt, 1);
   }
 
+  async generateVideo(data: GenerateModelDto) {
+    return this._generationService.generateVideo(data.model, data.prompt, data.image, 1);
+  }
+
   async generateLookALike(data: GenerateModelDto) {
     return this._generationService.generateLookALike(
       data.model,

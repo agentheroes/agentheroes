@@ -137,12 +137,20 @@ export function CharactersPage() {
     <div className="max-w-4xl mx-auto" onClick={cancelDelete}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Characters</h2>
-        <Link href="/characters/generate">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Character
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/characters/upload">
+            <Button variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Create from Existing Files
+            </Button>
+          </Link>
+          <Link href="/characters/generate">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Character
+            </Button>
+          </Link>
+        </div>
       </div>
       
       {loading ? (
