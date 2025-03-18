@@ -1,5 +1,6 @@
 import type React from "react";
 import { Header } from "@frontend/components/header";
+import { PostDialogProvider } from "@frontend/components/post";
 
 export const metadata = {
   title: "Agent Heroes",
@@ -13,10 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      <div className="mx-auto px-4 py-8">
-        <main>{children}</main>
-      </div>
+      <PostDialogProvider>
+        <Header />
+        <div className="mx-auto px-4 py-8">
+          <main>{children}</main>
+        </div>
+      </PostDialogProvider>
     </div>
   );
 }
