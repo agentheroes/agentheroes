@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ import {
   DialogFooter,
 } from "@frontend/components/ui/dialog";
 import { Button } from "@frontend/components/ui/button";
+import { SocialMediaChannelSelector } from "./social-media-channel-selector";
+import { useSocialMedia, SocialMediaProvider } from "../calendar/SocialMediaContext";
 
 interface PostDialogProps {
   open: boolean;
@@ -18,19 +20,26 @@ interface PostDialogProps {
   date?: Date;
 }
 
-export function PostDialog({ open, onOpenChange, date }: PostDialogProps) {
+// This wrapper component ensures the context is available
+function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
   const [content, setContent] = useState("");
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const { socials } = useSocialMedia();
 
   const handleSubmit = () => {
     // Implement submission logic here
     // This could be a post creation API call
     console.log("Creating post with content:", content);
     console.log("For date:", date);
+    console.log("Selected channels:", selectedChannels);
     
     // Reset form and close dialog
     setContent("");
+    setSelectedChannels([]);
     onOpenChange(false);
   };
+
+  const isFormValid = content.trim().length > 0 && selectedChannels.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,7 +51,13 @@ export function PostDialog({ open, onOpenChange, date }: PostDialogProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4">
+          {/* Social Media Channel Selector */}
+          <SocialMediaChannelSelector 
+            selectedChannels={selectedChannels}
+            onChange={setSelectedChannels}
+          />
+          
           <div className="grid gap-2">
             <label htmlFor="post-content" className="text-sm font-medium">
               Post Content
@@ -65,11 +80,24 @@ export function PostDialog({ open, onOpenChange, date }: PostDialogProps) {
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleSubmit}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit}
+            disabled={!isFormValid}
+          >
             Create Post
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Main component that wraps the content with the provider
+export function PostDialog(props: PostDialogProps) {
+  return (
+    <SocialMediaProvider>
+      <PostDialogContent {...props} />
+    </SocialMediaProvider>
   );
 } 
