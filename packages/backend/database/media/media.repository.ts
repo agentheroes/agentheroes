@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaRepository } from "@packages/backend/database/prisma/prisma";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
 import { Type } from "@prisma/client";
+import { MediaDto } from "@packages/shared/dto/media/media.dto";
 
 @Injectable()
 export class MediaRepository {
@@ -25,7 +26,7 @@ export class MediaRepository {
     });
   }
 
-  getAllMedia(orgId: string) {
+  getAllMedia(orgId: string, body: MediaDto) {
     return this._media.model.media.findMany({
       where: {
         organizationId: orgId,
@@ -34,6 +35,8 @@ export class MediaRepository {
       orderBy: {
         createdAt: "desc",
       },
+      take: 10,
+      skip: 10 * (+(body.page || 1) - 1),
     });
   }
 

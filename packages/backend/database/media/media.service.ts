@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { MediaRepository } from "@packages/backend/database/media/media.repository";
 import { Type } from "@prisma/client";
 import { UploadService } from "@packages/backend/upload/upload.service";
+import { MediaDto } from "@packages/shared/dto/media/media.dto";
 
 @Injectable()
 export class MediaService {
@@ -27,8 +28,8 @@ export class MediaService {
     );
   }
 
-  getAllMedia(orgId: string) {
-    return this._mediaRepository.getAllMedia(orgId);
+  getAllMedia(orgId: string, body: MediaDto) {
+    return this._mediaRepository.getAllMedia(orgId, body);
   }
 
   deleteMedia(orgId: string, mediaId: string) {
