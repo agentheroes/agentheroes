@@ -14,6 +14,8 @@ import { Button } from "@frontend/components/ui/button";
 import { SocialMediaChannelSelector } from "./social-media-channel-selector";
 import { useSocialMedia, SocialMediaProvider } from "../calendar/SocialMediaContext";
 import { ArrowUp, ArrowDown, Plus, Trash2 } from "lucide-react";
+import { TextareaWithMedia } from "@frontend/components/ui/textarea-with-media";
+import { Media } from "@frontend/types/media";
 
 interface PostDialogProps {
   open: boolean;
@@ -24,6 +26,7 @@ interface PostDialogProps {
 interface PostContent {
   id: string;
   text: string;
+  media: Media[];
 }
 
 // Post textarea component with reordering buttons
@@ -37,7 +40,7 @@ function PostTextArea({
   canMoveDown
 }: { 
   post: PostContent, 
-  onChange: (id: string, text: string) => void,
+  onChange: (id: string, text: string, media: Media[]) => void,
   onMoveUp: () => void,
   onMoveDown: () => void,
   onDelete: () => void,
@@ -68,12 +71,16 @@ function PostTextArea({
           <ArrowDown className="h-4 w-4" />
         </Button>
       </div>
-      <textarea
-        value={post.text}
-        onChange={(e) => onChange(post.id, e.target.value)}
-        className="flex h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        placeholder="Write your post content here..."
-      />
+      <div className="flex-1">
+        <TextareaWithMedia
+          value={post.text}
+          onChange={(text) => onChange(post.id, text, post.media)}
+          selectedMedia={post.media}
+          onMediaChange={(media) => onChange(post.id, post.text, media)}
+          maxMediaSelections={5}
+          placeholder="Write your post content here..."
+        />
+      </div>
       <Button 
         type="button" 
         size="sm" 
@@ -90,17 +97,17 @@ function PostTextArea({
 // This wrapper component ensures the context is available
 function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
   const [posts, setPosts] = useState<PostContent[]>([
-    { id: crypto.randomUUID(), text: "" }
+    { id: crypto.randomUUID(), text: "", media: [] }
   ]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const { socials } = useSocialMedia();
 
   const handleAddPost = () => {
-    setPosts([...posts, { id: crypto.randomUUID(), text: "" }]);
+    setPosts([...posts, { id: crypto.randomUUID(), text: "", media: [] }]);
   };
 
-  const handlePostChange = (id: string, text: string) => {
-    setPosts(posts.map(post => post.id === id ? { ...post, text } : post));
+  const handlePostChange = (id: string, text: string, media: Media[]) => {
+    setPosts(posts.map(post => post.id === id ? { ...post, text, media } : post));
   };
 
   const handleMovePost = (index: number, direction: 'up' | 'down') => {
@@ -127,12 +134,12 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
   const handleSubmit = () => {
     // Implement submission logic here
     // This could be a post creation API call
-    console.log("Creating posts:", posts.map(p => p.text));
+    console.log("Creating posts:", posts);
     console.log("For date:", date);
     console.log("Selected channels:", selectedChannels);
     
     // Reset form and close dialog
-    setPosts([{ id: crypto.randomUUID(), text: "" }]);
+    setPosts([{ id: crypto.randomUUID(), text: "", media: [] }]);
     setSelectedChannels([]);
     onOpenChange(false);
   };
