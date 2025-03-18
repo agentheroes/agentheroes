@@ -55,7 +55,6 @@ export interface ChannelItemProps {
   profilePic: string;
   identifier: string;
   isSelected?: boolean;
-  onClick?: () => void;
 }
 
 export interface SocialMedia {

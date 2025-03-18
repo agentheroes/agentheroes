@@ -3,7 +3,7 @@
 import React from 'react';
 import { ChannelItemProps } from './types';
 
-export function ChannelItem({ id, name, profilePic, identifier, isSelected = false, onClick }: ChannelItemProps) {
+export function ChannelItem({ id, name, profilePic, identifier, isSelected = false }: ChannelItemProps) {
   const socialIconUrl = `/socials/${identifier}.png`;
 
   return (
@@ -11,7 +11,6 @@ export function ChannelItem({ id, name, profilePic, identifier, isSelected = fal
       className={`flex items-center justify-between py-2 px-2 rounded-md transition-colors ${
         isSelected ? 'bg-gray-800' : 'hover:bg-gray-800'
       }`}
-      onClick={onClick}
     >
       <div className="flex items-center">
         <div className="w-8 h-8 rounded-full flex-shrink-0 relative">

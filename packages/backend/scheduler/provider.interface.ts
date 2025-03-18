@@ -20,6 +20,7 @@ type PostId = String[];
 type Err = "valid" | "show_user" | "save_to_db";
 export interface ProviderInterface {
   identifier: string;
+  name: string;
   selectionRequired: boolean;
   test(privateKey: string, publicKey: string): Promise<boolean>;
   mapRequest?: (input: any) => { state: string; code: string; refresh?: string };

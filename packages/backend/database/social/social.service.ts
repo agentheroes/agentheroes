@@ -4,7 +4,7 @@ import { Channels } from "@prisma/client";
 import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
-import {CalendarPosts} from "@packages/shared/dto/socials/calendar.posts.dto";
+import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
 
 @Injectable()
 export class SocialService {
@@ -24,6 +24,7 @@ export class SocialService {
     return {
       saved: list.map(({ privateKey, publicKey, ...all }) => ({
         ...all,
+        name: SchedulerList.find((p) => p.identifier === all.identifier).name,
         ...(includePassword
           ? {
               privateKey: (EncryptionService.verifyJWT(privateKey) as any).key,

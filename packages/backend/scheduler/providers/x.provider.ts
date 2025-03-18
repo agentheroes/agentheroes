@@ -10,6 +10,7 @@ import { lookup } from "mime-types";
 
 export class X implements ProviderInterface {
   identifier = "x";
+  name = 'X (Twitter)';
   selectionRequired = false;
   parseError(err: string) {
     return "valid" as "valid";

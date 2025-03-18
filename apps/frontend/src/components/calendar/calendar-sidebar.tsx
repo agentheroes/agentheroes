@@ -10,10 +10,6 @@ export function CalendarSidebar() {
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [isAddChannelPopupOpen, setIsAddChannelPopupOpen] = useState(false);
 
-  const handleChannelSelect = (id: string) => {
-    setSelectedChannelId(id === selectedChannelId ? null : id);
-  };
-
   const handleAddChannelClick = () => {
     setIsAddChannelPopupOpen(true);
   };
@@ -58,7 +54,6 @@ export function CalendarSidebar() {
                 profilePic={social.profilePic}
                 identifier={social.identifier}
                 isSelected={social.id === selectedChannelId}
-                onClick={() => handleChannelSelect(social.id)}
               />
             ))
           )}
