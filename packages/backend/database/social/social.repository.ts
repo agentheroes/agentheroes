@@ -6,6 +6,11 @@ import { EncryptionService } from "@packages/backend/encryption/encryption.servi
 import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import {
+  PostCreateDto,
+  PostListItemDto,
+} from "@packages/shared/dto/socials/post.create.dto";
+import { v4 as uuidv4 } from "uuid";
 
 dayjs.extend(utc);
 
@@ -113,5 +118,50 @@ export class SocialRepository {
         deletedAt: null,
       },
     });
+  }
+
+  async savePost(orgId: string, posts: PostCreateDto) {
+    for (const item of posts.list) {
+      const group = uuidv4();
+      for (const body of item.posts) {
+        const uuid = uuidv4();
+
+        const data = {
+          order: body.order,
+          organization: {
+            connect: {
+              id: orgId,
+            },
+          },
+          channel: {
+            connect: {
+              organizationId: orgId,
+              id: item.channel,
+            },
+          },
+          content: body.text,
+          media: JSON.stringify(body.media),
+          date: dayjs.utc(posts.date).toDate(),
+          id: body.id || uuid,
+        };
+
+        await this._posts.model.posts.upsert({
+          where: {
+            id_order: {
+              id: body.id || uuid,
+              order: body.order,
+            },
+            organizationId: orgId,
+          },
+          create: {
+            group,
+            ...data,
+          },
+          update: {
+            ...data,
+          },
+        });
+      }
+    }
   }
 }

@@ -17,6 +17,12 @@ import { ArrowUp, ArrowDown, Plus, Trash2, User, Edit2, ArrowLeft } from "lucide
 import { TextareaWithMedia } from "@frontend/components/ui/textarea-with-media";
 import { Media } from "@frontend/types/media";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@frontend/components/ui/tabs";
+import { Label } from "@frontend/components/ui/label";
+import { useToast } from "@frontend/hooks/use-toast";
+import {useFetch} from "@frontend/hooks/use-fetch";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 interface PostDialogProps {
   open: boolean;
@@ -359,7 +365,11 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [activePreviewTab, setActivePreviewTab] = useState<string>("");
   const [editingCustomChannel, setEditingCustomChannel] = useState<string | null>(null);
+  const [postType, setPostType] = useState<'schedule' | 'draft'>('schedule');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { socials } = useSocialMedia();
+  const { toast } = useToast();
+  const fetch = useFetch();
 
   // Set the first selected channel as active preview tab
   useEffect(() => {
@@ -441,20 +451,67 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
     );
   };
 
-  const handleSubmit = () => {
-    // Implement submission logic here
-    // This could be a post creation API call
-    console.log("Creating global posts:", globalPosts);
-    console.log("Custom channel contents:", customChannelContents);
-    console.log("For date:", date);
-    console.log("Selected channels:", selectedChannels);
-    
-    // Reset form and close dialog
-    setGlobalPosts([{ id: crypto.randomUUID(), text: "", media: [] }]);
-    setCustomChannelContents([]);
-    setSelectedChannels([]);
-    setEditingCustomChannel(null);
-    onOpenChange(false);
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // Format the data according to the required structure
+      const formattedData = {
+        date: dayjs(date).utc().format('YYYY-MM-DDTHH:mm:ss'), // Format as YYYY-MM-DD
+        type: postType,
+        list: selectedChannels.map(channelId => {
+          const posts = getPostsForChannel(channelId);
+          
+          return {
+            channel: channelId,
+            posts: posts
+              .filter(post => post.text.trim() !== '') // Filter out empty posts
+              .map((post, index) => ({
+                order: index + 1,
+                text: post.text,
+                media: post.media.map(mediaItem => 
+                  typeof mediaItem.media === 'string' ? mediaItem.media : mediaItem.media
+                )
+              }))
+          };
+        }).filter(item => item.posts.length > 0) // Filter out channels with no posts
+      };
+      
+      // Send the POST request
+      const response = await fetch('/socials/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formattedData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      toast({
+        title: "Success",
+        description: "Post created successfully",
+      });
+      
+      // Reset form and close dialog
+      setGlobalPosts([{ id: crypto.randomUUID(), text: "", media: [] }]);
+      setCustomChannelContents([]);
+      setSelectedChannels([]);
+      setEditingCustomChannel(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = (
@@ -469,7 +526,7 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
         <DialogHeader>
           <DialogTitle>Add New Post</DialogTitle>
           <DialogDescription>
-            {date ? `Create a post for ${date.toLocaleDateString()}` : "Create a new post"}
+            {date ? `Create a post for ${date.toLocaleString()}` : "Create a new post"}
           </DialogDescription>
         </DialogHeader>
         
@@ -482,6 +539,37 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
               selectedChannels={selectedChannels}
               onChange={setSelectedChannels}
             />
+            
+            {/* Post Type Selector */}
+            <div className="mb-4">
+              <Label className="text-sm font-medium mb-2 block">Post Type</Label>
+              <div className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="schedule"
+                    name="postType"
+                    value="schedule"
+                    checked={postType === 'schedule'}
+                    onChange={() => setPostType('schedule')}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="schedule">Schedule</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="draft"
+                    name="postType"
+                    value="draft"
+                    checked={postType === 'draft'}
+                    onChange={() => setPostType('draft')}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="draft">Draft</Label>
+                </div>
+              </div>
+            </div>
             
             {/* Display channel-specific editor or global editor */}
             {editingCustomChannel ? (
@@ -592,9 +680,9 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
           <Button 
             type="button" 
             onClick={handleSubmit}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
           >
-            Create Post
+            {isSubmitting ? "Creating..." : "Create Post"}
           </Button>
         </DialogFooter>
       </DialogContent>

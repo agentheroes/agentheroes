@@ -1,10 +1,11 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { SchedulerService } from "@packages/backend/scheduler/scheduler.service";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
 import { SocialLinkDTO } from "@packages/shared/dto/socials.dto";
 import { SocialService } from "@packages/backend/database/social/social.service";
 import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
+import { PostCreateDto } from "@packages/shared/dto/socials/post.create.dto";
 
 @Controller("/socials")
 export class SocialController {
@@ -44,5 +45,13 @@ export class SocialController {
     @Query() body: CalendarPosts,
   ) {
     return this._socialService.getOrganizationsPosts(organization.id, body);
+  }
+
+  @Post("/posts")
+  savePosts(
+      @GetOrganizationFromRequest() org: Organization,
+      @Body() posts: PostCreateDto
+  ) {
+    return this._socialService.savePost(org.id, posts);
   }
 }

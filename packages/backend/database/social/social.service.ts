@@ -5,6 +5,7 @@ import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
 import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
+import { PostCreateDto } from "@packages/shared/dto/socials/post.create.dto";
 
 @Injectable()
 export class SocialService {
@@ -53,5 +54,9 @@ export class SocialService {
 
   async getOrganizationsPosts(orgId: string, body: CalendarPosts) {
     return this._socialRepository.getOrganizationsPosts(orgId, body);
+  }
+
+  async savePost(orgId: string, body: PostCreateDto) {
+    await this._socialRepository.savePost(orgId, body);
   }
 }
