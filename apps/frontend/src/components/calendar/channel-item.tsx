@@ -3,20 +3,40 @@
 import React from 'react';
 import { ChannelItemProps } from './types';
 
-export function ChannelItem({ name, avatar }: ChannelItemProps) {
+export function ChannelItem({ id, name, profilePic, identifier, isSelected = false, onClick }: ChannelItemProps) {
+  const socialIconUrl = `/socials/${identifier}.png`;
+
   return (
-    <div className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-gray-800">
+    <div 
+      className={`flex items-center justify-between py-2 px-2 rounded-md transition-colors ${
+        isSelected ? 'bg-gray-800' : 'hover:bg-gray-800'
+      }`}
+      onClick={onClick}
+    >
       <div className="flex items-center">
-        <div className="w-6 h-6 rounded-md overflow-hidden bg-gray-700 flex-shrink-0">
+        <div className="w-8 h-8 rounded-full flex-shrink-0 relative">
+          {/* Profile Picture */}
           <img 
-            src={avatar}
-            alt={`${name}'s avatar`}
-            className="w-full h-full object-cover"
+            src={profilePic}
+            alt={`${name}'s profile picture`}
+            className="w-full h-full bg-cover rounded-full"
             onError={(e) => {
               // Fallback for image load errors
-              // (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40';
             }}
           />
+          
+          {/* Social Media Icon Overlay */}
+          <div className="absolute bottom-[-2px] right-[-2px] w-4 h-4 rounded-full overflow-hidden border border-gray-800">
+            <img 
+              src={socialIconUrl}
+              alt={`${identifier} icon`}
+              className="w-full h-full object-cover border border-blue-950"
+              onError={(e) => {
+                // Fallback for social icon load errors
+                // (e.target as HTMLImageElement).src = '/social-placeholder.png';
+              }}
+            />
+          </div>
         </div>
         <span className="ml-2 text-sm font-medium">{name}</span>
       </div>

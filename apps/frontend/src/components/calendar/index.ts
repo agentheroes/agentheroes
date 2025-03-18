@@ -10,4 +10,5 @@ export * from './calendarUtils';
 export * from './types';
 export * from './day-view';
 export * from './month-view';
-export * from './year-view'; 
+export * from './year-view';
+export * from './add-channel-popup'; 

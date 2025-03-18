@@ -10,6 +10,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "paths": {
       "@frontend/*": ["./apps/frontend/src/*"],
       "@backend/*": ["./apps/backend/src/*"],

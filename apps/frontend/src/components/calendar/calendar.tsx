@@ -6,47 +6,59 @@ import { CalendarSidebar } from "./calendar-sidebar";
 import { CalendarGrid } from "./calendar-grid";
 import { ViewType, Event } from "./types";
 import { fetchCalendarEvents } from "./calendarUtils";
+import { SocialMediaProvider, useSocialMedia } from "./SocialMediaContext";
+import { useFetch } from "@frontend/hooks/use-fetch";
 
-export function Calendar() {
+// Create a separate CalendarContent component to use the SocialMediaContext
+function CalendarContent() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState<ViewType>("Week");
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get the social media context
+  const { socials, loading: socialsLoading, error: socialsError } = useSocialMedia();
+  
+  // Get the fetch function from useFetch hook
+  const fetch = useFetch();
 
-  // Fetch events whenever the date or view type changes
+  // Fetch events whenever the date or view type changes AND after socials are loaded
   useEffect(() => {
-    async function loadEvents() {
-      setIsLoading(true);
-      setError(null);
+    // Only fetch events if socials are loaded
+    if (!socialsLoading) {
+      async function loadEvents() {
+        setIsLoading(true);
+        setError(null);
 
-      try {
-        const fetchedEvents = await fetchCalendarEvents(viewType, currentDate);
+        try {
+          const fetchedEvents = await fetchCalendarEvents(viewType, currentDate, fetch);
 
-        // Transform dates from strings to Date objects if they're coming from an API
-        const processedEvents = fetchedEvents.map((event: any) => ({
-          ...event,
-          startTime:
-            event.startTime instanceof Date
-              ? event.startTime
-              : new Date(event.startTime),
-          endTime:
-            event.endTime instanceof Date
-              ? event.endTime
-              : new Date(event.endTime),
-        }));
+          // Transform dates from strings to Date objects if they're coming from an API
+          const processedEvents = fetchedEvents.map((event: any) => ({
+            ...event,
+            startTime:
+              event.startTime instanceof Date
+                ? event.startTime
+                : new Date(event.startTime),
+            endTime:
+              event.endTime instanceof Date
+                ? event.endTime
+                : new Date(event.endTime),
+          }));
 
-        setEvents(processedEvents);
-      } catch (err) {
-        console.error("Error loading events:", err);
-        setError("Failed to load calendar events. Please try again later.");
-      } finally {
-        setIsLoading(false);
+          setEvents(processedEvents);
+        } catch (err) {
+          console.error("Error loading events:", err);
+          setError("Failed to load calendar events. Please try again later.");
+        } finally {
+          setIsLoading(false);
+        }
       }
-    }
 
-    loadEvents();
-  }, [currentDate, viewType]);
+      loadEvents();
+    }
+  }, [currentDate, viewType, socialsLoading, fetch]);
 
   const handlePrevious = () => {
     const newDate = new Date(currentDate);
@@ -95,28 +107,57 @@ export function Calendar() {
             onViewChange={setViewType}
           />
 
-          {isLoading && (
+          {/* Show loading for socials */}
+          {socialsLoading && (
             <div className="flex-1 flex items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
-              <span className="ml-2 text-gray-400">Loading events...</span>
+              <span className="ml-2 text-gray-400">Loading channels...</span>
             </div>
           )}
 
-          {error && (
+          {/* Show error for socials */}
+          {socialsError && (
             <div className="flex-1 flex items-center justify-center text-red-500">
-              <span>{error}</span>
+              <span>{socialsError}</span>
             </div>
           )}
 
-          {!isLoading && !error && (
-            <CalendarGrid
-              currentDate={currentDate}
-              viewType={viewType}
-              events={events}
-            />
+          {/* Only show calendar content after socials are loaded */}
+          {!socialsLoading && !socialsError && (
+            <>
+              {isLoading && (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
+                  <span className="ml-2 text-gray-400">Loading events...</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="flex-1 flex items-center justify-center text-red-500">
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {!isLoading && !error && (
+                <CalendarGrid
+                  currentDate={currentDate}
+                  viewType={viewType}
+                  events={events}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+// Main Calendar component that provides the SocialMediaContext
+export function Calendar() {
+  return (
+    <SocialMediaProvider>
+      <CalendarContent />
+    </SocialMediaProvider>
   );
 }

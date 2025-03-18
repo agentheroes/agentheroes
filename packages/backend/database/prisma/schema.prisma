@@ -33,6 +33,7 @@ model Organization {
   character  Characters[]
   media      Media[]
   channels   Channels[]
+  posts      Posts[]
 }
 
 model UserOrganization {
@@ -96,6 +97,7 @@ model Media {
 }
 
 model Channels {
+  id String @default(uuid())
   organizationId String
   rootInternalId String
   currentInternalId String
@@ -110,13 +112,40 @@ model Channels {
   timezone Int
   shouldRefresh  Boolean
   selectionRequired Boolean
+  posts          Posts[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
 
-  @@id([organizationId, rootInternalId])
+  @@id([organizationId, rootInternalId, currentInternalId])
+  @@unique([id])
   @@index([rootInternalId])
+  @@index([id])
   @@index([identifier])
+  @@index([deletedAt])
+}
+
+model Posts {
+  id String @id @default(uuid())
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  channelId String
+  channel Channels @relation(fields: [channelId], references: [id])
+  content String
+  media String
+  group String
+  order Int
+  date           DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([channelId])
+  @@index([group])
+  @@index([order])
+  @@index([date])
+  @@index([createdAt])
   @@index([deletedAt])
 }
 

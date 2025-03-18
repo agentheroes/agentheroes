@@ -2,8 +2,8 @@ import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
 import { makeId } from "@packages/backend/encryption/make.id";
 import { ioRedis } from "@packages/backend/redis/redis.service";
 import { SocialService } from "@packages/backend/database/social/social.service";
-import {Injectable} from "@nestjs/common";
-import {CheckSocialsList} from "@packages/shared/dto/socials.dto";
+import { Injectable } from "@nestjs/common";
+import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
 
 @Injectable()
 export class SchedulerService {
@@ -18,30 +18,42 @@ export class SchedulerService {
     return provider.test(privateKey, publicKey);
   }
 
-  saveSocials(body: CheckSocialsList) {
-    return this._socialService.saveSocials(body);
-  }
-
-  async generateURL(orgId: string, refererDomain: string, identifier: string) {
+  async generateURL(
+    orgId: string,
+    refererDomain: string,
+    identifier: string,
+    timezone: number,
+  ) {
     const provider = SchedulerList.find((p) => p.identifier === identifier);
     if (!provider) return;
 
     const state = makeId(20);
     const keys = await this.getKeys(identifier);
     if (!keys) {
-      return ;
+      return;
     }
-    const redirectUrl = `${refererDomain}/redirect/${state}`;
 
-    const { url, extra } = await provider.link(
+    const redirectUrl = `${refererDomain}/v1/api/redirect?provider=${identifier}`;
+    const {
+      url,
+      extra,
+      state: newState,
+    } = await provider.link(
       redirectUrl,
+      state,
       keys.privateKey,
       keys.publicKey,
     );
 
     ioRedis.set(
-      `integration:${state}`,
-      JSON.stringify({ identifier, orgId, extra }),
+      `integration:${newState}`,
+      JSON.stringify({
+        identifier,
+        orgId,
+        extra,
+        redirectTo: "/calendar",
+        timezone: +timezone,
+      }),
       "EX",
       300,
     );
@@ -49,37 +61,68 @@ export class SchedulerService {
     return url;
   }
 
-  async authenticate(timezone: number, query: any, state: string) {
-    const getConnection = await ioRedis.get(`integration:${state}`);
-    if (!getConnection) return;
+  private async _providerAndConnection(
+    query: any,
+    state?: string,
+    identifier?: string,
+  ) {
+    if (identifier) {
+      const provider = SchedulerList.find((p) => p.identifier === identifier);
+      if (!provider) return {};
 
-    await ioRedis.del(`integration:${state}`);
+      const newQuery = provider?.mapRequest?.(query) || query;
+      const getConnection = await ioRedis.get(`integration:${newQuery.state}`);
+      if (!getConnection) return {};
+      // await ioRedis.del(`integration:${newQuery.state}`);
+      const parsedConnection = JSON.parse(getConnection);
 
-    const parsedConnection = JSON.parse(getConnection);
+      return {
+        provider,
+        parsedConnection,
+        newQuery,
+      };
+    }
 
-    const provider = SchedulerList.find(
-      (p) => p.identifier === parsedConnection.identifier,
-    );
-    if (!provider) return;
+    if (state) {
+      const getConnection = await ioRedis.get(`integration:${state}`);
+      if (!getConnection) return {};
+      const parsedConnection = JSON.parse(getConnection);
+      const provider = SchedulerList.find(
+        (p) => p.identifier === parsedConnection.identifier,
+      );
+      // await ioRedis.del(`integration:${parsedConnection.state}`);
 
-    const getCode = provider?.mapRequest?.(query) || query.code;
+      return {
+        provider,
+        parsedConnection,
+        newQuery: undefined,
+      };
+    }
+
+    return {};
+  }
+
+  async authenticate(query: any, identifier?: string) {
+    const { provider, parsedConnection, newQuery } =
+      await this._providerAndConnection(query, query.state, identifier);
+    if (!provider && !parsedConnection) return;
+
     const keys = await this.getKeys(parsedConnection.identifier);
-
     const info = await provider.auth(
-      getCode,
+      newQuery.code,
       keys.privateKey,
       keys.publicKey,
       parsedConnection?.extra,
     );
 
-    return this._socialService.save(parsedConnection.orgId, {
+    await this._socialService.save(parsedConnection.orgId, {
       token: info.accessToken,
-      refreshToken: info.refreshToken,
+      refreshToken: newQuery.refresh || info.refreshToken,
       expiresIn: info.expiresIn,
       name: info.name,
       username: info.username,
       identifier: parsedConnection.identifier,
-      timezone,
+      timezone: parsedConnection.timezone,
       profilePic: info.picture,
       rootInternalId: info.id,
       currentInternalId: info.id,
@@ -87,5 +130,7 @@ export class SchedulerService {
       selectionRequired: provider.selectionRequired,
       organizationId: parsedConnection.orgId,
     });
+
+    return parsedConnection.redirectTo;
   }
 }

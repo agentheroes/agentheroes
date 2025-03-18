@@ -16,7 +16,8 @@ const Button = React.forwardRef<
         variant === "outline" && "bg-black shadow-none",
         variant === "destructive" && "bg-red-600 shadow-none hover:bg-red-700",
         variant === "ghost" && "bg-transparent shadow-none hover:bg-gray-800",
-        size === "sm" && "py-[6px] px-[12px] text-[12px]"
+        size === "sm" && "py-[6px] px-[12px] text-[12px]",
+        props.disabled && "opacity-35",
       )}
       ref={ref}
       {...props}

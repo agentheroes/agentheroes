@@ -50,6 +50,17 @@ export interface CalendarEventProps {
 }
 
 export interface ChannelItemProps {
+  id: string;
   name: string;
-  avatar: string;
+  profilePic: string;
+  identifier: string;
+  isSelected?: boolean;
+  onClick?: () => void;
+}
+
+export interface SocialMedia {
+  id: string;
+  identifier: string;
+  name: string;
+  profilePic: string;
 } 

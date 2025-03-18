@@ -131,9 +131,14 @@ export function formatDateForAPI(date: Date): string {
  * Fetch calendar events for a specific date range
  * @param viewType - The calendar view type ('Day', 'Week', 'Month', 'Year')
  * @param currentDate - The current date being viewed
+ * @param fetchFn - The fetch function to use (from useFetch hook)
  * @returns A promise that resolves to an array of events
  */
-export async function fetchCalendarEvents(viewType: 'Day' | 'Week' | 'Month' | 'Year', currentDate: Date) {
+export async function fetchCalendarEvents(
+  viewType: 'Day' | 'Week' | 'Month' | 'Year', 
+  currentDate: Date,
+  fetchFn?: (url: string, requestInit?: RequestInit) => Promise<Response>
+) {
   const { startDate, endDate } = getDateRangeForView(viewType, currentDate);
   
   // Format dates for API request
@@ -142,10 +147,12 @@ export async function fetchCalendarEvents(viewType: 'Day' | 'Week' | 'Month' | '
   
   try {
     // Construct the API URL with query parameters
-    const url = `/calendar?startDate=${startDateStr}&endDate=${endDateStr}`;
+    const url = `/socials/calendar?startDate=${startDateStr}&endDate=${endDateStr}`;
     
-    // Make the request
-    const response = await fetch(url);
+    // Make the request using the provided fetch function or fallback to native fetch
+    const response = fetchFn 
+      ? await fetchFn(url) 
+      : await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Error fetching calendar events: ${response.statusText}`);
@@ -157,28 +164,6 @@ export async function fetchCalendarEvents(viewType: 'Day' | 'Week' | 'Month' | '
   } catch (error) {
     console.error('Failed to fetch calendar events:', error);
     // Return some mock data for now
-    return [
-      {
-        id: '1',
-        title: 'Health Benefits Walkthrough',
-        startTime: new Date(currentDate.getFullYear(), currentDate.getMonth(), 22, 10, 0),
-        endTime: new Date(currentDate.getFullYear(), currentDate.getMonth(), 22, 11, 0),
-        color: 'bg-indigo-600 border-indigo-700',
-      },
-      {
-        id: '2',
-        title: 'Marketing Meet-and-Greet',
-        startTime: new Date(currentDate.getFullYear(), currentDate.getMonth(), 23, 12, 0),
-        endTime: new Date(currentDate.getFullYear(), currentDate.getMonth(), 23, 13, 0),
-        color: 'bg-orange-500 border-orange-600',
-      },
-      {
-        id: '3',
-        title: 'Marketing Meet-and-Greet',
-        startTime: new Date(currentDate.getFullYear(), currentDate.getMonth(), 25, 12, 0),
-        endTime: new Date(currentDate.getFullYear(), currentDate.getMonth(), 25, 13, 0),
-        color: 'bg-green-600 border-green-700',
-      },
-    ];
+    return [];
   }
 } 

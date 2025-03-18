@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import {BadRequestException, Body, Controller, Get, HttpException, Param, Post} from "@nestjs/common";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
 import { IsSuperAdminGuard } from "@backend/services/auth/is.super.admin";
@@ -62,11 +62,9 @@ export class SetupController {
       }),
     );
 
-    if (checkSocials.some((p) => !p)) {
-      return {
-        success: false,
-        message: "Some social media keys are invalid",
-      };
+    const invalid = checkSocials.indexOf(false);
+    if (invalid > -1) {
+      throw new HttpException(`Invalid keys for ${body.socials[invalid].identifier}`, 400);
     }
 
     return this._socialService.saveSocials(body);

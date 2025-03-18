@@ -3,12 +3,18 @@ import { PrismaRepository } from "@packages/backend/database/prisma/prisma";
 import { Channels } from "@prisma/client";
 import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
+import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 @Injectable()
 export class SocialRepository {
   constructor(
     private _socialAuth: PrismaRepository<"socialAuth">,
     private _channel: PrismaRepository<"channels">,
+    private _posts: PrismaRepository<"posts">,
   ) {}
 
   getKeys(identifier: string) {
@@ -40,7 +46,7 @@ export class SocialRepository {
 
   save(
     org: string,
-    info: Omit<Channels, "createdAt" | "updatedAt" | "deletedAt">,
+    info: Omit<Channels, "createdAt" | "updatedAt" | "deletedAt" | "id">,
   ) {
     const details = {
       identifier: info.identifier,
@@ -60,9 +66,10 @@ export class SocialRepository {
 
     return this._channel.model.channels.upsert({
       where: {
-        organizationId_rootInternalId: {
+        organizationId_rootInternalId_currentInternalId: {
           organizationId: org,
           rootInternalId: info.rootInternalId,
+          currentInternalId: info.rootInternalId,
         },
       },
       create: {
@@ -77,5 +84,34 @@ export class SocialRepository {
 
   getSocialsInformation() {
     return this._socialAuth.model.socialAuth.findMany();
+  }
+
+  getOrganizationsSocials(orgId: string) {
+    return this._channel.model.channels.findMany({
+      where: {
+        organizationId: orgId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        identifier: true,
+        name: true,
+        profilePic: true,
+      },
+    });
+  }
+
+  getOrganizationsPosts(orgId: string, body: CalendarPosts) {
+    return this._posts.model.posts.findMany({
+      where: {
+        organizationId: orgId,
+        order: 1,
+        date: {
+          gte: dayjs.utc(body.startDate).toDate(),
+          lte: dayjs.utc(body.endDate).toDate(),
+        },
+        deletedAt: null,
+      },
+    });
   }
 }

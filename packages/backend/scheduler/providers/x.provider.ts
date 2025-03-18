@@ -14,12 +14,21 @@ export class X implements ProviderInterface {
   parseError(err: string) {
     return "valid" as "valid";
   }
+
+  mapRequest(input: any) {
+    return {
+      state: input.oauth_token || '',
+      code: input.oauth_verifier || '',
+      refresh: input.refresh || '',
+    }
+  }
+
   provider(
     appSecret: string,
     appKey: string,
     token?: { oauth_token: string; oauth_token_secret: string },
   ) {
-    const { oauth_token, oauth_token_secret } = token;
+    const { oauth_token, oauth_token_secret } = token || {};
     return new TwitterApi({
       appKey: appKey,
       appSecret: appSecret,
@@ -34,6 +43,7 @@ export class X implements ProviderInterface {
 
   async link(
     redirectUrl: string,
+    state: string,
     appSecret: string,
     appKey: string,
   ) {
@@ -43,11 +53,12 @@ export class X implements ProviderInterface {
       await client.generateAuthLink(redirectUrl, {
         authAccessType: "write",
         linkMode: "authenticate",
-        forceLogin: false,
+        forceLogin: false
       });
 
     return {
       url,
+      state: oauth_token,
       extra: { oauth_token, oauth_token_secret },
     };
   }
@@ -166,7 +177,7 @@ export class X implements ProviderInterface {
   async test(privateKey: string, publicKey: string): Promise<boolean> {
     const provider = this.provider(privateKey, publicKey);
     try {
-      await provider.search("");
+      await provider.appLogin();
       return true;
     } catch (error) {
       return false;

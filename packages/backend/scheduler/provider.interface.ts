@@ -13,23 +13,24 @@ export interface Auth {
 export interface Post {
   id: string;
   text: string;
-  media: string[]
+  media: string[];
 }
 
 type PostId = String[];
-type Err = 'valid' | 'show_user' | 'save_to_db';
+type Err = "valid" | "show_user" | "save_to_db";
 export interface ProviderInterface {
   identifier: string;
   selectionRequired: boolean;
   test(privateKey: string, publicKey: string): Promise<boolean>;
-  mapRequest?: (input: any) => {code: string};
-  parseError:(error: string) => Err;
+  mapRequest?: (input: any) => { state: string; code: string; refresh?: string };
+  parseError: (error: string) => Err;
   provider(privateKey: string, publicKey: string): any;
   link(
     url: string,
+    state: string,
     privateKey: string,
     publicKey: string,
-  ): Promise<{ url: string; extra?: object }>;
+  ): Promise<{ url: string; state: string; extra?: object }>;
   auth(
     code: string,
     privateKey: string,

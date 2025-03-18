@@ -4,6 +4,7 @@ import { Channels } from "@prisma/client";
 import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
+import {CalendarPosts} from "@packages/shared/dto/socials/calendar.posts.dto";
 
 @Injectable()
 export class SocialService {
@@ -40,8 +41,16 @@ export class SocialService {
 
   save(
     org: string,
-    info: Omit<Channels, "createdAt" | "updatedAt" | "deletedAt">,
+    info: Omit<Channels, "createdAt" | "updatedAt" | "deletedAt" | "id">,
   ) {
     return this._socialRepository.save(org, info);
+  }
+
+  async getOrganizationsSocials(orgId: string) {
+    return this._socialRepository.getOrganizationsSocials(orgId);
+  }
+
+  async getOrganizationsPosts(orgId: string, body: CalendarPosts) {
+    return this._socialRepository.getOrganizationsPosts(orgId, body);
   }
 }
