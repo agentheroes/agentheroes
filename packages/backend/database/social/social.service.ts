@@ -57,6 +57,6 @@ export class SocialService {
   }
 
   async savePost(orgId: string, body: PostCreateDto) {
-    await this._socialRepository.savePost(orgId, body);
+    return this._socialRepository.savePost(orgId, body);
   }
 }

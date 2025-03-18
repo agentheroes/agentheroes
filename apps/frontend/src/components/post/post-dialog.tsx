@@ -12,14 +12,31 @@ import {
 } from "@frontend/components/ui/dialog";
 import { Button } from "@frontend/components/ui/button";
 import { SocialMediaChannelSelector } from "./social-media-channel-selector";
-import { useSocialMedia, SocialMediaProvider } from "../calendar/SocialMediaContext";
-import { ArrowUp, ArrowDown, Plus, Trash2, User, Edit2, ArrowLeft } from "lucide-react";
+import {
+  useSocialMedia,
+  SocialMediaProvider,
+} from "../calendar/SocialMediaContext";
+import { useCalendar, CalendarProvider } from "../calendar/CalendarContext";
+import {
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Trash2,
+  User,
+  Edit2,
+  ArrowLeft,
+} from "lucide-react";
 import { TextareaWithMedia } from "@frontend/components/ui/textarea-with-media";
 import { Media } from "@frontend/types/media";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@frontend/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@frontend/components/ui/tabs";
 import { Label } from "@frontend/components/ui/label";
 import { useToast } from "@frontend/hooks/use-toast";
-import {useFetch} from "@frontend/hooks/use-fetch";
+import { useFetch } from "@frontend/hooks/use-fetch";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
@@ -43,40 +60,40 @@ interface ChannelContent {
 }
 
 // Post textarea component with reordering buttons
-function PostTextArea({ 
-  post, 
-  onChange, 
-  onMoveUp, 
-  onMoveDown, 
+function PostTextArea({
+  post,
+  onChange,
+  onMoveUp,
+  onMoveDown,
   onDelete,
   canMoveUp,
-  canMoveDown
-}: { 
-  post: PostContent, 
-  onChange: (id: string, text: string, media: Media[]) => void,
-  onMoveUp: () => void,
-  onMoveDown: () => void,
-  onDelete: () => void,
-  canMoveUp: boolean,
-  canMoveDown: boolean
+  canMoveDown,
+}: {
+  post: PostContent;
+  onChange: (id: string, text: string, media: Media[]) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onDelete: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
 }) {
   return (
     <div className="flex gap-2">
       <div className="flex flex-col gap-2">
-        <Button 
-          type="button" 
-          size="sm" 
-          variant="outline" 
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
           onClick={onMoveUp}
           disabled={!canMoveUp}
           className="h-8 w-8 !p-0"
         >
           <ArrowUp className="h-4 w-4" />
         </Button>
-        <Button 
-          type="button" 
-          size="sm" 
-          variant="outline" 
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
           onClick={onMoveDown}
           disabled={!canMoveDown}
           className="h-8 w-8 !p-0"
@@ -94,10 +111,10 @@ function PostTextArea({
           placeholder="Write your post content here..."
         />
       </div>
-      <Button 
-        type="button" 
-        size="sm" 
-        variant="outline" 
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
         onClick={onDelete}
         className="h-8 w-8 !p-0"
       >
@@ -108,43 +125,48 @@ function PostTextArea({
 }
 
 // Post preview component that displays how the post will look on social media
-function PostPreview({ 
-  posts, 
+function PostPreview({
+  posts,
   channels,
   activeTab,
-  onEditCustom 
-}: { 
-  posts: PostContent[], 
-  channels: string[],
-  activeTab: string,
-  onEditCustom: (channelId: string) => void
+  onEditCustom,
+}: {
+  posts: PostContent[];
+  channels: string[];
+  activeTab: string;
+  onEditCustom: (channelId: string) => void;
 }) {
   const { socials } = useSocialMedia();
-  const [playingVideos, setPlayingVideos] = useState<Record<string, boolean>>({});
-  
+  const [playingVideos, setPlayingVideos] = useState<Record<string, boolean>>(
+    {},
+  );
+
   // Find selected social platform
-  const activeSocial = socials.find(social => social.id === activeTab);
-  
+  const activeSocial = socials.find((social) => social.id === activeTab);
+
   // Handle video play on hover
-  const handleVideoMouseEnter = (videoElement: HTMLVideoElement, videoId: string) => {
+  const handleVideoMouseEnter = (
+    videoElement: HTMLVideoElement,
+    videoId: string,
+  ) => {
     if (!videoElement) return;
 
     // Mark this video as attempting to play
-    setPlayingVideos(prev => ({ ...prev, [videoId]: true }));
-    
+    setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
+
     // Reset to the beginning if it was previously played
     if (videoElement.currentTime > 0) {
       videoElement.currentTime = 0;
     }
-    
+
     // Handle the play Promise properly to avoid AbortError
     const playPromise = videoElement.play();
-    
+
     // Not all browsers return a promise from play()
     if (playPromise !== undefined) {
-      playPromise.catch(error => {
+      playPromise.catch((error) => {
         // Only log errors other than AbortError
-        if (error.name !== 'AbortError') {
+        if (error.name !== "AbortError") {
           console.error("Error playing video:", error);
         }
       });
@@ -152,33 +174,36 @@ function PostPreview({
   };
 
   // Handle video pause on mouse leave
-  const handleVideoMouseLeave = (videoElement: HTMLVideoElement, videoId: string) => {
+  const handleVideoMouseLeave = (
+    videoElement: HTMLVideoElement,
+    videoId: string,
+  ) => {
     if (!videoElement) return;
-    
+
     // Mark this video as no longer playing
-    setPlayingVideos(prev => ({ ...prev, [videoId]: false }));
-    
+    setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
+
     // Check if video is actually playing before trying to pause
     if (!videoElement.paused) {
       videoElement.pause();
     }
   };
-  
+
   // Function to render media based on type
   const renderMedia = (item: Media, index: number) => {
     if (!item.media) return null;
-    
+
     // Create a unique ID for this media item
     const mediaId = `${item.id || index}-${activeTab}`;
-    
+
     // Check if the media is a video based on type or file extension
-    const isVideo = item.type === "VIDEO" || 
-                    (typeof item.media === 'string' && 
-                     /\.(mp4|webm|ogg)$/i.test(item.media));
-    
+    const isVideo =
+      item.type === "VIDEO" ||
+      (typeof item.media === "string" && /\.(mp4|webm|ogg)$/i.test(item.media));
+
     if (isVideo) {
       return (
-        <video 
+        <video
           src={item.media}
           className="w-full h-full object-cover"
           loop
@@ -189,27 +214,27 @@ function PostPreview({
         />
       );
     }
-    
+
     // Default to image
     return (
-      <img 
-        src={item.media} 
-        alt={`Media ${index + 1}`} 
+      <img
+        src={item.media}
+        alt={`Media ${index + 1}`}
         className="w-full h-full object-cover"
       />
     );
   };
-  
+
   return (
     <div className="border rounded-md p-4 bg-white dark:bg-gray-950">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
             {activeSocial?.profilePic ? (
-              <img 
-                src={activeSocial.profilePic} 
+              <img
+                src={activeSocial.profilePic}
                 alt={activeSocial.name || "Social platform"}
-                className="h-full w-full object-cover" 
+                className="h-full w-full object-cover"
               />
             ) : (
               <User className="h-5 w-5 text-primary" />
@@ -230,17 +255,24 @@ function PostPreview({
           <Edit2 className="h-4 w-4" /> Edit Custom
         </Button>
       </div>
-      
+
       <div className="min-h-[300px] pr-3">
         {posts.map((post, index) => (
           <div key={post.id} className="mb-4">
-            {index > 0 && <div className="h-px bg-gray-200 dark:bg-gray-800 my-4"></div>}
-            <p className="whitespace-pre-wrap mb-2">{post.text || "Your post content will appear here..."}</p>
-            
+            {index > 0 && (
+              <div className="h-px bg-gray-200 dark:bg-gray-800 my-4"></div>
+            )}
+            <p className="whitespace-pre-wrap mb-2">
+              {post.text || "Your post content will appear here..."}
+            </p>
+
             {post.media.length > 0 && (
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {post.media.map((item, i) => (
-                  <div key={i} className="relative aspect-square rounded-md bg-gray-100 dark:bg-gray-800">
+                  <div
+                    key={i}
+                    className="relative aspect-square rounded-md bg-gray-100 dark:bg-gray-800"
+                  >
                     {item.media && renderMedia(item, i)}
                   </div>
                 ))}
@@ -259,36 +291,38 @@ function CustomPostEditor({
   posts,
   onChange,
   onBack,
-  socials
+  socials,
 }: {
-  channelId: string,
-  posts: PostContent[],
-  onChange: (posts: PostContent[]) => void,
-  onBack: () => void,
-  socials: any[]
+  channelId: string;
+  posts: PostContent[];
+  onChange: (posts: PostContent[]) => void;
+  onBack: () => void;
+  socials: any[];
 }) {
-  const activeSocial = socials.find(social => social.id === channelId);
+  const activeSocial = socials.find((social) => social.id === channelId);
 
   const handlePostChange = (id: string, text: string, media: Media[]) => {
-    onChange(posts.map(post => post.id === id ? { ...post, text, media } : post));
+    onChange(
+      posts.map((post) => (post.id === id ? { ...post, text, media } : post)),
+    );
   };
 
-  const handleMovePost = (index: number, direction: 'up' | 'down') => {
+  const handleMovePost = (index: number, direction: "up" | "down") => {
     const newPosts = [...posts];
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+
     // Swap posts
     const temp = newPosts[index];
     newPosts[index] = newPosts[newIndex];
     newPosts[newIndex] = temp;
-    
+
     onChange(newPosts);
   };
 
   const handleDeletePost = (index: number) => {
     // Don't allow deleting the last post
     if (posts.length === 1) return;
-    
+
     const newPosts = [...posts];
     newPosts.splice(index, 1);
     onChange(newPosts);
@@ -302,10 +336,10 @@ function CustomPostEditor({
     <div className="grid gap-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Button 
-            type="button" 
-            size="sm" 
-            variant="ghost" 
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
             onClick={onBack}
             className="h-8 w-8 !p-0"
           >
@@ -313,9 +347,9 @@ function CustomPostEditor({
           </Button>
           <div className="flex items-center gap-2">
             {activeSocial?.profilePic ? (
-              <img 
-                src={activeSocial.profilePic} 
-                alt={activeSocial.name || "Social platform"} 
+              <img
+                src={activeSocial.profilePic}
+                alt={activeSocial.name || "Social platform"}
                 className="h-6 w-6 rounded-full"
               />
             ) : (
@@ -334,15 +368,15 @@ function CustomPostEditor({
             key={post.id}
             post={post}
             onChange={handlePostChange}
-            onMoveUp={() => handleMovePost(index, 'up')}
-            onMoveDown={() => handleMovePost(index, 'down')}
+            onMoveUp={() => handleMovePost(index, "up")}
+            onMoveDown={() => handleMovePost(index, "down")}
             onDelete={() => handleDeletePost(index)}
             canMoveUp={index > 0}
             canMoveDown={index < posts.length - 1}
           />
         ))}
       </div>
-      
+
       <Button
         type="button"
         variant="outline"
@@ -359,60 +393,79 @@ function CustomPostEditor({
 // This wrapper component ensures the context is available
 function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
   const [globalPosts, setGlobalPosts] = useState<PostContent[]>([
-    { id: crypto.randomUUID(), text: "", media: [] }
+    { id: crypto.randomUUID(), text: "", media: [] },
   ]);
-  const [customChannelContents, setCustomChannelContents] = useState<ChannelContent[]>([]);
+  const [customChannelContents, setCustomChannelContents] = useState<
+    ChannelContent[]
+  >([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [activePreviewTab, setActivePreviewTab] = useState<string>("");
-  const [editingCustomChannel, setEditingCustomChannel] = useState<string | null>(null);
-  const [postType, setPostType] = useState<'schedule' | 'draft'>('schedule');
+  const [editingCustomChannel, setEditingCustomChannel] = useState<
+    string | null
+  >(null);
+  const [postType, setPostType] = useState<"schedule" | "draft">("schedule");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { socials } = useSocialMedia();
+  const { refreshEvents } = useCalendar();
   const { toast } = useToast();
   const fetch = useFetch();
 
   // Set the first selected channel as active preview tab
   useEffect(() => {
-    if (selectedChannels.length > 0 && !selectedChannels.includes(activePreviewTab)) {
+    if (
+      selectedChannels.length > 0 &&
+      !selectedChannels.includes(activePreviewTab)
+    ) {
       setActivePreviewTab(selectedChannels[0]);
     }
   }, [selectedChannels, activePreviewTab]);
 
   // Helper to get posts for a specific channel (either custom or global)
   const getPostsForChannel = (channelId: string): PostContent[] => {
-    const customContent = customChannelContents.find(content => content.channelId === channelId);
+    const customContent = customChannelContents.find(
+      (content) => content.channelId === channelId,
+    );
     return customContent ? customContent.posts : globalPosts;
   };
-  
+
   // Check if a channel has custom content
   const hasCustomContent = (channelId: string): boolean => {
-    return customChannelContents.some(content => content.channelId === channelId);
+    return customChannelContents.some(
+      (content) => content.channelId === channelId,
+    );
   };
 
   const handleAddPost = () => {
-    setGlobalPosts([...globalPosts, { id: crypto.randomUUID(), text: "", media: [] }]);
+    setGlobalPosts([
+      ...globalPosts,
+      { id: crypto.randomUUID(), text: "", media: [] },
+    ]);
   };
 
   const handlePostChange = (id: string, text: string, media: Media[]) => {
-    setGlobalPosts(globalPosts.map(post => post.id === id ? { ...post, text, media } : post));
+    setGlobalPosts(
+      globalPosts.map((post) =>
+        post.id === id ? { ...post, text, media } : post,
+      ),
+    );
   };
 
-  const handleMovePost = (index: number, direction: 'up' | 'down') => {
+  const handleMovePost = (index: number, direction: "up" | "down") => {
     const newPosts = [...globalPosts];
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+
     // Swap posts
     const temp = newPosts[index];
     newPosts[index] = newPosts[newIndex];
     newPosts[newIndex] = temp;
-    
+
     setGlobalPosts(newPosts);
   };
 
   const handleDeletePost = (index: number) => {
     // Don't allow deleting the last post
     if (globalPosts.length === 1) return;
-    
+
     const newPosts = [...globalPosts];
     newPosts.splice(index, 1);
     setGlobalPosts(newPosts);
@@ -423,79 +476,91 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
     // If no custom content exists yet for this channel, create it based on global posts
     if (!hasCustomContent(channelId)) {
       // Deep clone the global posts to avoid reference issues
-      const clonedPosts = globalPosts.map(post => ({
+      const clonedPosts = globalPosts.map((post) => ({
         id: crypto.randomUUID(),
         text: post.text,
-        media: [...post.media] // Clone the media array
+        media: [...post.media], // Clone the media array
       }));
-      
+
       setCustomChannelContents([
         ...customChannelContents,
-        { channelId, posts: clonedPosts }
+        { channelId, posts: clonedPosts },
       ]);
     }
-    
+
     setEditingCustomChannel(channelId);
   };
 
   // Update custom content for a channel
   const handleCustomContentChange = (posts: PostContent[]) => {
     if (!editingCustomChannel) return;
-    
+
     setCustomChannelContents(
-      customChannelContents.map(content => 
+      customChannelContents.map((content) =>
         content.channelId === editingCustomChannel
           ? { ...content, posts }
-          : content
-      )
+          : content,
+      ),
     );
   };
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      
+
       // Format the data according to the required structure
       const formattedData = {
-        date: dayjs(date).utc().format('YYYY-MM-DDTHH:mm:ss'), // Format as YYYY-MM-DD
+        date: dayjs(date).utc().format("YYYY-MM-DDTHH:mm:ss"), // Format as YYYY-MM-DD
         type: postType,
-        list: selectedChannels.map(channelId => {
-          const posts = getPostsForChannel(channelId);
-          
-          return {
-            channel: channelId,
-            posts: posts
-              .filter(post => post.text.trim() !== '') // Filter out empty posts
-              .map((post, index) => ({
-                order: index + 1,
-                text: post.text,
-                media: post.media.map(mediaItem => 
-                  typeof mediaItem.media === 'string' ? mediaItem.media : mediaItem.media
-                )
-              }))
-          };
-        }).filter(item => item.posts.length > 0) // Filter out channels with no posts
+        list: selectedChannels
+          .map((channelId) => {
+            const posts = getPostsForChannel(channelId);
+
+            return {
+              channel: channelId,
+              posts: posts
+                .filter((post) => post.text.trim() !== "") // Filter out empty posts
+                .map((post, index) => ({
+                  order: index + 1,
+                  text: post.text,
+                  media: post.media.map((mediaItem) =>
+                    typeof mediaItem.media === "string"
+                      ? mediaItem.media
+                      : mediaItem.media,
+                  ),
+                })),
+            };
+          })
+          .filter((item) => item.posts.length > 0), // Filter out channels with no posts
       };
-      
+
       // Send the POST request
-      const response = await fetch('/socials/posts', {
-        method: 'POST',
+      const response = await fetch("/socials/posts", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formattedData),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-      
-      const result = await response.json();
+
+      // Refresh the calendar events to update the UI
+      try {
+        await refreshEvents();
+        console.log("Calendar events refreshed successfully");
+      } catch (refreshError) {
+        console.error("Failed to refresh calendar events:", refreshError);
+        // Continue with success flow even if calendar refresh fails
+      }
+
       toast({
         title: "Success",
         description: "Post created successfully",
       });
-      
+
       // Reset form and close dialog
       setGlobalPosts([{ id: crypto.randomUUID(), text: "", media: [] }]);
       setCustomChannelContents([]);
@@ -514,11 +579,12 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
     }
   };
 
-  const isFormValid = (
-    (globalPosts.some(post => post.text.trim().length > 0) || 
-     customChannelContents.some(content => content.posts.some(post => post.text.trim().length > 0))
-    ) && selectedChannels.length > 0
-  );
+  const isFormValid =
+    (globalPosts.some((post) => post.text.trim().length > 0) ||
+      customChannelContents.some((content) =>
+        content.posts.some((post) => post.text.trim().length > 0),
+      )) &&
+    selectedChannels.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -526,23 +592,27 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
         <DialogHeader>
           <DialogTitle>Add New Post</DialogTitle>
           <DialogDescription>
-            {date ? `Create a post for ${date.toLocaleString()}` : "Create a new post"}
+            {date
+              ? `Create a post for ${date.toLocaleString()}`
+              : "Create a new post"}
           </DialogDescription>
         </DialogHeader>
-        
+
         {/* Two-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left column - Post form */}
           <div className="flex flex-col gap-4">
             {/* Social Media Channel Selector */}
-            <SocialMediaChannelSelector 
+            <SocialMediaChannelSelector
               selectedChannels={selectedChannels}
               onChange={setSelectedChannels}
             />
-            
+
             {/* Post Type Selector */}
             <div className="mb-4">
-              <Label className="text-sm font-medium mb-2 block">Post Type</Label>
+              <Label className="text-sm font-medium mb-2 block">
+                Post Type
+              </Label>
               <div className="flex gap-4">
                 <div className="flex items-center space-x-2">
                   <input
@@ -550,8 +620,8 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
                     id="schedule"
                     name="postType"
                     value="schedule"
-                    checked={postType === 'schedule'}
-                    onChange={() => setPostType('schedule')}
+                    checked={postType === "schedule"}
+                    onChange={() => setPostType("schedule")}
                     className="h-4 w-4"
                   />
                   <Label htmlFor="schedule">Schedule</Label>
@@ -562,15 +632,15 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
                     id="draft"
                     name="postType"
                     value="draft"
-                    checked={postType === 'draft'}
-                    onChange={() => setPostType('draft')}
+                    checked={postType === "draft"}
+                    onChange={() => setPostType("draft")}
                     className="h-4 w-4"
                   />
                   <Label htmlFor="draft">Draft</Label>
                 </div>
               </div>
             </div>
-            
+
             {/* Display channel-specific editor or global editor */}
             {editingCustomChannel ? (
               <CustomPostEditor
@@ -585,7 +655,7 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
                 <label className="text-sm font-medium">
                   Post Content (All Channels)
                 </label>
-                
+
                 {/* Multiple Post Textareas */}
                 <div className="space-y-3">
                   {globalPosts.map((post, index) => (
@@ -593,15 +663,15 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
                       key={post.id}
                       post={post}
                       onChange={handlePostChange}
-                      onMoveUp={() => handleMovePost(index, 'up')}
-                      onMoveDown={() => handleMovePost(index, 'down')}
+                      onMoveUp={() => handleMovePost(index, "up")}
+                      onMoveDown={() => handleMovePost(index, "down")}
                       onDelete={() => handleDeletePost(index)}
                       canMoveUp={index > 0}
                       canMoveDown={index < globalPosts.length - 1}
                     />
                   ))}
                 </div>
-                
+
                 {/* Add Post Button */}
                 <Button
                   type="button"
@@ -618,39 +688,48 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
 
           {/* Right column - Preview */}
           <div>
-            <label className="text-sm font-medium mb-2 block">
-              Preview
-            </label>
-            
+            <label className="text-sm font-medium mb-2 block">Preview</label>
+
             {selectedChannels.length > 0 ? (
               <div className="grid gap-4">
-                <Tabs 
-                  value={activePreviewTab || selectedChannels[0]} 
+                <Tabs
+                  value={activePreviewTab || selectedChannels[0]}
                   onValueChange={setActivePreviewTab}
                 >
                   <TabsList className="mb-4">
-                    {selectedChannels.map(channelId => {
-                      const social = socials.find(s => s.id === channelId);
+                    {selectedChannels.map((channelId) => {
+                      const social = socials.find((s) => s.id === channelId);
                       const hasCustom = hasCustomContent(channelId);
-                      
+
                       return (
-                        <TabsTrigger value={channelId} key={channelId} className="flex items-center gap-2">
+                        <TabsTrigger
+                          value={channelId}
+                          key={channelId}
+                          className="flex items-center gap-2"
+                        >
                           {social?.profilePic && (
-                            <img src={social.profilePic} alt={social.name} className="w-4 h-4" />
+                            <img
+                              src={social.profilePic}
+                              alt={social.name}
+                              className="w-4 h-4"
+                            />
                           )}
                           {social?.name}
                           {hasCustom && (
-                            <span className="h-1.5 w-1.5 bg-primary rounded-full" title="Has custom content" />
+                            <span
+                              className="h-1.5 w-1.5 bg-primary rounded-full"
+                              title="Has custom content"
+                            />
                           )}
                         </TabsTrigger>
                       );
                     })}
                   </TabsList>
-                  
-                  {selectedChannels.map(channelId => (
+
+                  {selectedChannels.map((channelId) => (
                     <TabsContent value={channelId} key={channelId}>
-                      <PostPreview 
-                        posts={getPostsForChannel(channelId)} 
+                      <PostPreview
+                        posts={getPostsForChannel(channelId)}
                         channels={selectedChannels}
                         activeTab={channelId}
                         onEditCustom={handleEditCustom}
@@ -662,13 +741,14 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
             ) : (
               <div className="border rounded-md p-6 flex flex-col items-center justify-center h-[350px] bg-muted/20">
                 <p className="text-muted-foreground text-center">
-                  Select at least one social media channel to see a preview of your post
+                  Select at least one social media channel to see a preview of
+                  your post
                 </p>
               </div>
             )}
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button
             type="button"
@@ -677,8 +757,8 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
           >
             Cancel
           </Button>
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             onClick={handleSubmit}
             disabled={!isFormValid || isSubmitting}
           >
@@ -692,9 +772,5 @@ function PostDialogContent({ open, onOpenChange, date }: PostDialogProps) {
 
 // Main component that wraps the content with the provider
 export function PostDialog(props: PostDialogProps) {
-  return (
-    <SocialMediaProvider>
-      <PostDialogContent {...props} />
-    </SocialMediaProvider>
-  );
-} 
+  return <PostDialogContent {...props} />;
+}

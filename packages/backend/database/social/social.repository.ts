@@ -163,5 +163,9 @@ export class SocialRepository {
         });
       }
     }
+
+    return {
+      saved: true,
+    };
   }
 }

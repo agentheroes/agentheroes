@@ -9,7 +9,6 @@ dayjs.extend(isBetween);
 
 export const SlotComponent: FC<{ date: dayjs.Dayjs }> = (props) => {
   const calendar = useCalendar();
-
   const events = useMemo(() => {
     return calendar.events.filter((f) =>
       dayjs
@@ -19,7 +18,7 @@ export const SlotComponent: FC<{ date: dayjs.Dayjs }> = (props) => {
           dayjs.utc(props.date).add(1, "hour"),
         ),
     );
-  }, [calendar, props.date]);
+  }, [calendar.events, props.date]);
 
   return (
     <>

@@ -14,12 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <PostDialogProvider>
-        <Header />
-        <div className="mx-auto px-4 py-8">
-          <main>{children}</main>
-        </div>
-      </PostDialogProvider>
+      <Header />
+      <div className="mx-auto px-4 py-8">
+        <main>{children}</main>
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { CalendarGridProps, Day } from './types';
 import { DayView } from './day-view';
 import { MonthView } from './month-view';
 import { YearView } from './year-view';
+import { TimeRow } from './time-row';
 
 export function CalendarGrid({ currentDate, viewType, events }: CalendarGridProps) {
   // Generate time slots (00:00 AM to 23:00 PM)
@@ -23,27 +24,37 @@ export function CalendarGrid({ currentDate, viewType, events }: CalendarGridProp
   if (viewType === 'Week') {
     return (
       <div className="flex-1 overflow-auto">
-        <div className="flex h-full">
-          {/* Time slots column */}
-          <div className="w-16 flex-shrink-0 border-r border-gray-800">
-            <div className="h-14 border-b border-gray-800"> {/* Empty header cell */}
-            </div>
-            <div className="relative">
-              {timeSlots.map((slot: string, index: number) => (
-                <TimeSlot key={index} time={slot} />
-              ))}
-            </div>
+        <div className="flex flex-col h-full">
+          {/* Days header row */}
+          <div className="flex border-b border-gray-800">
+            {/* Empty corner cell */}
+            <div className="w-16 flex-shrink-0 border-r border-gray-800 h-14"></div>
+            
+            {/* Day headers */}
+            {weekDays.map((day: Day, index: number) => (
+              <div 
+                key={index}
+                className={`flex-1 min-w-[100px] flex flex-col items-center justify-center border-r border-gray-800 h-14 ${day.isToday ? "bg-gray-800" : ""}`}
+              >
+                <span className="text-xs font-medium text-gray-400">
+                  {day.name.toUpperCase()}
+                </span>
+                <span
+                  className={`text-xl font-bold ${day.isToday ? "text-white" : "text-gray-300"}`}
+                >
+                  {day.date.getDate()}
+                </span>
+              </div>
+            ))}
           </div>
           
-          {/* Days columns */}
-          <div className="flex-1 flex">
-            {weekDays.map((day: Day, index: number) => (
-              <DayColumn 
+          {/* Time rows */}
+          <div className="flex-1">
+            {timeSlots.map((slot: string, index: number) => (
+              <TimeRow
                 key={index}
-                day={day}
-                timeSlots={timeSlots}
-                events={[]}
-                isToday={day.isToday}
+                time={slot}
+                weekDays={weekDays}
               />
             ))}
           </div>

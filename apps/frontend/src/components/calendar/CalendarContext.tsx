@@ -34,7 +34,7 @@ interface CalendarProviderProps {
 
 export function CalendarProvider({ children }: CalendarProviderProps) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [viewType, setViewType] = useState<ViewType>('Month');
+  const [viewType, setViewType] = useState<ViewType>('Week');
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +47,6 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     try {
       // Use the fetchCalendarEvents function from calendarUtils
       const fetchedEvents = await fetchCalendarEvents(viewType, currentDate, fetch);
-      
       // Transform dates from strings to Date objects if needed
       const transformedEvents: Event[] = fetchedEvents.map((event: any) => ({
         id: event.id,

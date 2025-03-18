@@ -5,23 +5,24 @@ import { CalendarSidebar } from "./calendar-sidebar";
 import { CalendarGrid } from "./calendar-grid";
 import { SocialMediaProvider, useSocialMedia } from "./SocialMediaContext";
 import { CalendarProvider, useCalendar } from "./CalendarContext";
+import {PostDialogProvider} from "@frontend/components/post";
 
 // Create a separate CalendarContent component to use the contexts
 function CalendarContent() {
   // Get the social media context
   const { loading: socialsLoading, error: socialsError } = useSocialMedia();
-  
+
   // Get the calendar context
-  const { 
-    currentDate, 
-    viewType, 
-    events, 
-    isLoading, 
-    error, 
-    handlePrevious, 
-    handleNext, 
-    handleToday, 
-    setViewType 
+  const {
+    currentDate,
+    viewType,
+    events,
+    isLoading,
+    error,
+    handlePrevious,
+    handleNext,
+    handleToday,
+    setViewType,
   } = useCalendar();
 
   return (
@@ -90,8 +91,10 @@ export function Calendar() {
   return (
     <SocialMediaProvider>
       <CalendarProvider>
-        <CalendarContent />
+        <PostDialogProvider>
+          <CalendarContent />
+        </PostDialogProvider>
       </CalendarProvider>
     </SocialMediaProvider>
   );
-} 
+}
