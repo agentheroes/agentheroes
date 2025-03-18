@@ -24,7 +24,7 @@ export function DayView({ currentDate, timeSlots, events }: DayViewProps) {
         <div className="flex border-b border-gray-800">
           {/* Empty corner cell */}
           <div className="w-16 flex-shrink-0 border-r border-gray-800 h-14"></div>
-          
+
           {/* Day header */}
           <div
             className={`flex-1 min-w-[200px] flex flex-col items-center justify-center border-r border-gray-800 h-14 ${isToday ? "bg-gray-800" : ""}`}
@@ -39,7 +39,7 @@ export function DayView({ currentDate, timeSlots, events }: DayViewProps) {
             </span>
           </div>
         </div>
-        
+
         {/* Time rows */}
         <div className="flex-1">
           {timeSlots.map((time, index) => (
@@ -48,12 +48,13 @@ export function DayView({ currentDate, timeSlots, events }: DayViewProps) {
               <div className="w-16 flex-shrink-0 flex items-start justify-end pr-2 text-xs text-gray-400 border-r border-gray-800">
                 <span className="relative -top-2">{time}</span>
               </div>
-              
+
               {/* Day slot */}
-              <div 
+              <div
                 className={`flex-1 min-w-[200px] border-r border-gray-800 relative ${isToday ? "bg-gray-900" : ""}`}
               >
                 <SlotComponent
+                  view="day"
                   date={dayjs(
                     dayjs(currentDate).format("YYYY-MM-DD") + "T" + time,
                   )}

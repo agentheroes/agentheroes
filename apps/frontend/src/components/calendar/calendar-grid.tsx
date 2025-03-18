@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import { DayColumn } from './day-column';
-import { TimeSlot } from './time-slot';
 import { generateTimeSlots, generateWeekDays } from './calendarUtils';
 import { CalendarGridProps, Day } from './types';
 import { DayView } from './day-view';

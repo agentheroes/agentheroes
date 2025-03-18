@@ -5,20 +5,49 @@ import { usePostDialog } from "@frontend/components/post";
 import { CalendarEvent } from "@frontend/components/calendar/calendar-event";
 import { useCalendar } from "@frontend/components/calendar/CalendarContext";
 import isBetween from "dayjs/plugin/isBetween";
-dayjs.extend(isBetween);
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
-export const SlotComponent: FC<{ date: dayjs.Dayjs }> = (props) => {
+// Extend dayjs with necessary plugins
+dayjs.extend(isBetween);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const calculateDates = (view: "day" | "month" | "week", date: dayjs.Dayjs) => {
+  if (view === "month") {
+    return {
+      slotStart: date.startOf("day"),
+      slotEnd: date.endOf("day"),
+    };
+  }
+
+  return {
+    slotStart: date.startOf("hour"),
+    slotEnd: date.endOf("hour").add(1, "minute"),
+  };
+};
+
+export const SlotComponent: FC<{
+  date: dayjs.Dayjs;
+  view: "day" | "month" | "week";
+}> = (props) => {
   const calendar = useCalendar();
   const events = useMemo(() => {
-    return calendar.events.filter((f) =>
-      dayjs
-        .utc(f.date)
-        .isBetween(
-          dayjs.utc(props.date).subtract(1, "hour"),
-          dayjs.utc(props.date).add(1, "hour"),
-        ),
-    );
-  }, [calendar.events, props.date]);
+    // Log current slot's date for debugging
+    return calendar.events.filter((event) => {
+      // Parse the event date with dayjs, ensuring proper timezone handling
+      const eventDate = dayjs(event.date);
+
+      // Create a start and end range for this time slot
+      const { slotStart, slotEnd } = calculateDates(props.view, props.date);
+
+      console.log(slotStart, slotEnd);
+      // Check if the event falls within the current slot's time range
+      const isInSlot = eventDate.isBetween(slotStart, slotEnd);
+
+      return isInSlot;
+    });
+  }, [calendar.events, props.date, props.view]);
 
   return (
     <>
@@ -29,7 +58,7 @@ export const SlotComponent: FC<{ date: dayjs.Dayjs }> = (props) => {
             <CalendarEvent
               key={event.id}
               title={event.title}
-              time={`dadasdasd`}
+              time={dayjs(event.date).format("HH:mm")}
             />
           );
         })}
@@ -37,6 +66,7 @@ export const SlotComponent: FC<{ date: dayjs.Dayjs }> = (props) => {
     </>
   );
 };
+
 export const SlotComponentInner: FC<{ date: dayjs.Dayjs }> = (props) => {
   const { date } = props;
   const { openPostDialog } = usePostDialog();

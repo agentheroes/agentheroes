@@ -86,6 +86,7 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
                 </span>
                 <div>
                   <SlotComponent
+                    view="month"
                     date={dayjs(
                       dayjs(
                         currentDate
@@ -95,7 +96,9 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
                           .join("-") +
                           "-" +
                           day,
-                      ).format("YYYY-MM-DD") + "T" + dayjs().add(10, 'minutes').format('HH:mm:ss'),
+                      ).format("YYYY-MM-DD") +
+                        "T" +
+                        dayjs().add(10, "minutes").format("HH:mm:ss"),
                     )}
                   />
                 </div>

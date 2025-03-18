@@ -3,7 +3,6 @@ export * from './calendar-header';
 export * from './calendar-sidebar';
 export * from './calendar-grid';
 export * from './calendar-event';
-export * from './day-column';
 export * from './time-slot';
 export * from './channel-item';
 export * from './calendarUtils';
