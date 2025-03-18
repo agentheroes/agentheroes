@@ -86,12 +86,6 @@ export function CalendarHeader({
             >
               Month
             </button>
-            <button 
-              onClick={() => onViewChange('Year')}
-              className={`px-4 py-2 text-sm ${viewType === 'Year' ? 'bg-orange-500 text-white' : 'text-gray-300 hover:bg-gray-800'}`}
-            >
-              Year
-            </button>
           </div>
         </div>
       </div>

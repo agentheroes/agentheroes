@@ -10,8 +10,8 @@ import { MonthView } from './month-view';
 import { YearView } from './year-view';
 
 export function CalendarGrid({ currentDate, viewType, events }: CalendarGridProps) {
-  // Generate time slots (7 AM to 7 PM)
-  const timeSlots = generateTimeSlots(7, 19);
+  // Generate time slots (00:00 AM to 23:00 PM)
+  const timeSlots = generateTimeSlots(0, 23);
   
   // Generate week days
   const weekDays = generateWeekDays(currentDate);

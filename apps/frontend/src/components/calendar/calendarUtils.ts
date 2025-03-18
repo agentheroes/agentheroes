@@ -10,7 +10,7 @@ export function generateTimeSlots(startHour: number, endHour: number): string[] 
   for (let hour = startHour; hour <= endHour; hour++) {
     const hourFormatted = hour % 12 === 0 ? 12 : hour % 12;
     const period = hour >= 12 ? 'PM' : 'AM';
-    slots.push(`${hourFormatted}:00 ${period}`);
+    slots.push(`${hour.toString().length === 1 ? '0' : ''}${hour}:00:00`);
   }
   
   return slots;

@@ -1,7 +1,9 @@
-'use client';
+"use client";
 
-import React, { useMemo } from 'react';
-import { Event } from './types';
+import React, { useMemo } from "react";
+import { Event } from "./types";
+import { SlotComponent } from "@frontend/components/calendar/slot.component";
+import dayjs from "dayjs";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -13,38 +15,38 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
   const daysInMonth = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth() + 1,
-    0
+    0,
   ).getDate();
 
   // Get the first day of the month
   const firstDayOfMonth = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
-    1
+    1,
   ).getDay();
 
   // Create an array of day numbers for the current month
   const days = useMemo(() => {
     const result = [];
-    
+
     // Add empty cells for days before the first of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       result.push(null);
     }
-    
+
     // Add the days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       result.push(i);
     }
-    
+
     return result;
   }, [daysInMonth, firstDayOfMonth]);
 
   // Group events by day
   const eventsByDay = useMemo(() => {
     const result: Record<number, Event[]> = {};
-    
-    events.forEach(event => {
+
+    events.forEach((event) => {
       if (
         event.startTime.getMonth() === currentDate.getMonth() &&
         event.startTime.getFullYear() === currentDate.getFullYear()
@@ -56,7 +58,7 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
         result[day].push(event);
       }
     });
-    
+
     return result;
   }, [events, currentDate]);
 
@@ -74,8 +76,8 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
     <div className="flex-1 overflow-auto p-4">
       {/* Days of week header */}
       <div className="grid grid-cols-7 mb-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-          <div 
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+          <div
             key={index}
             className="text-center text-xs font-medium text-gray-400 py-2"
           >
@@ -83,36 +85,54 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
           </div>
         ))}
       </div>
-      
+
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => (
-          <div 
+          <div
             key={index}
             className={`
               border border-gray-800 min-h-[100px] p-1 relative
-              ${day === null ? 'bg-gray-950 opacity-30' : ''}
-              ${isToday(day as number) ? 'bg-gray-800' : ''}
+              ${day === null ? "bg-gray-950 opacity-30" : ""}
+              ${isToday(day as number) ? "bg-gray-800" : ""}
             `}
           >
             {day !== null && (
               <>
-                <span className={`text-sm font-medium ${isToday(day) ? 'text-white' : 'text-gray-400'}`}>
+                <span
+                  className={`text-sm font-medium ${isToday(day) ? "text-white" : "text-gray-400"}`}
+                >
                   {day}
                 </span>
-                
+                <div>
+                  <SlotComponent
+                    date={dayjs(
+                      dayjs(
+                        currentDate
+                          .toISOString()
+                          .split("-")
+                          .slice(0, 2)
+                          .join("-") +
+                          "-" +
+                          day,
+                      ).format("YYYY-MM-DD") + "T" + dayjs().add(10, 'minutes').format('HH:mm:ss'),
+                    )}
+                  />
+                </div>
+
                 {/* Show events for this day */}
                 <div className="mt-1 space-y-1">
-                  {eventsByDay[day] && eventsByDay[day].slice(0, 3).map((event, eventIndex) => (
-                    <div 
-                      key={eventIndex}
-                      className={`text-xs truncate p-1 rounded ${event.color.replace('border-', '')}`}
-                      title={event.title}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
-                  
+                  {eventsByDay[day] &&
+                    eventsByDay[day].slice(0, 3).map((event, eventIndex) => (
+                      <div
+                        key={eventIndex}
+                        className={`text-xs truncate p-1 rounded ${event.color.replace("border-", "")}`}
+                        title={event.title}
+                      >
+                        {event.title}
+                      </div>
+                    ))}
+
                   {/* Show "more" indicator if there are more events */}
                   {eventsByDay[day] && eventsByDay[day].length > 3 && (
                     <div className="text-xs text-gray-400 pl-1">
@@ -127,4 +147,4 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
       </div>
     </div>
   );
-} 
+}
