@@ -6,6 +6,7 @@ import { SetupController } from "@backend/controllers/setup.controller";
 import { ModelsController } from "@backend/controllers/models.controller";
 import { CharactersController } from "@backend/controllers/characters.controller";
 import { MediaController } from "@backend/controllers/media.controller";
+import { SocialController } from "@backend/controllers/social.controller";
 
 const authControllers = [
   UsersController,
@@ -13,6 +14,7 @@ const authControllers = [
   ModelsController,
   CharactersController,
   MediaController,
+  SocialController,
 ];
 
 @Module({

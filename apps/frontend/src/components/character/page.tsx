@@ -9,7 +9,7 @@ import { Card } from "@frontend/components/ui/card";
 import { useToast } from "@frontend/hooks/use-toast";
 import { GenerateMediaButton } from "./generate-media-button";
 
-type CharacterStatus = "IN_PROGESS" | "COMPLETED" | "FAILED";
+type CharacterStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED";
 
 interface Character {
   id: string;
@@ -99,7 +99,7 @@ export function CharactersPage() {
   // Get status icon and color based on character status
   const getStatusInfo = (status: CharacterStatus) => {
     switch (status) {
-      case "IN_PROGESS":
+      case "IN_PROGRESS":
         return {
           icon: <Clock className="h-4 w-4" />,
           label: "In Progress",
@@ -135,7 +135,7 @@ export function CharactersPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto" onClick={cancelDelete}>
+    <div className="max-w-7xl mx-auto" onClick={cancelDelete}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Characters</h2>
         <div className="flex gap-2">

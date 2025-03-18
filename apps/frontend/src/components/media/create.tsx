@@ -236,7 +236,7 @@ export function MediaCreationPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-6">
         <Link href="/media" className="flex items-center text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4 mr-2" />

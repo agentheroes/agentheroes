@@ -233,7 +233,7 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
         };
         
         // Send the data to the backend
-        const response = await fetch("/setup", {
+        const response = await fetch("/setup/generators", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -307,7 +307,7 @@ export function OnboardingForm({ onComplete }: OnboardingFormProps) {
       };
       
       // Send the data to the backend
-      const response = await fetch("/setup", {
+      const response = await fetch("/setup/generators", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -32,6 +32,7 @@ model Organization {
   allowTrial Boolean            @default(false)
   character  Characters[]
   media      Media[]
+  channels   Channels[]
 }
 
 model UserOrganization {
@@ -91,6 +92,45 @@ model Media {
   deletedAt      DateTime?
 
   @@index([characterId])
+  @@index([deletedAt])
+}
+
+model Channels {
+  organizationId String
+  rootInternalId String
+  currentInternalId String
+  identifier     String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  name String
+  username String
+  profilePic String
+  token String
+  refreshToken String
+  expiresIn Int
+  timezone Int
+  shouldRefresh  Boolean
+  selectionRequired Boolean
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@id([organizationId, rootInternalId])
+  @@index([rootInternalId])
+  @@index([identifier])
+  @@index([deletedAt])
+}
+
+model SocialAuth {
+  id String @id @default(uuid())
+  identifier     String
+  privateKey     String
+  publicKey      String
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([identifier])
   @@index([deletedAt])
 }
 

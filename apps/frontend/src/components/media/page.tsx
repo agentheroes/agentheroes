@@ -144,7 +144,7 @@ export function MediaPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto" onClick={cancelDelete}>
+    <div className="max-w-7xl mx-auto" onClick={cancelDelete}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Media</h2>
         <Link href="/media/create">

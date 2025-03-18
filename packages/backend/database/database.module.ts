@@ -13,6 +13,8 @@ import { MediaService } from "@packages/backend/database/media/media.service";
 import { MediaRepository } from "@packages/backend/database/media/media.repository";
 import { CharactersService } from "@packages/backend/database/characters/characters.service";
 import { CharactersRepository } from "@packages/backend/database/characters/characters.repository";
+import { SocialService } from "@packages/backend/database/social/social.service";
+import { SocialRepository } from "@packages/backend/database/social/social.repository";
 
 @Global()
 @Module({
@@ -31,6 +33,8 @@ import { CharactersRepository } from "@packages/backend/database/characters/char
     CharactersRepository,
     MediaService,
     MediaRepository,
+    SocialService,
+    SocialRepository,
   ],
   get exports() {
     return [...this.providers];
