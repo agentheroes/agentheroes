@@ -7,7 +7,10 @@ import { GenerationIdentifiers } from "@packages/backend/generations/generation.
 import { SetupDto } from "@packages/shared/dto/setup/setup.dto";
 import { SocialService } from "@packages/backend/database/social/social.service";
 import { SchedulerService } from "@packages/backend/scheduler/scheduler.service";
-import { CheckProvider } from "@packages/shared/dto/socials.dto";
+import {
+  CheckProvider,
+  CheckSocialsList,
+} from "@packages/shared/dto/socials.dto";
 
 @Controller("/setup")
 @IsSuperAdminGuard()
@@ -45,6 +48,28 @@ export class SetupController {
     return {
       valid: await this._modelsService.checkModelApi(provider, key),
     };
+  }
+
+  @Post("/socials")
+  async saveSocialMedia(@Body() body: CheckSocialsList) {
+    const checkSocials = await Promise.all(
+      body.socials.map((p) => {
+        return this._schedulerService.checkKeys(
+          p.identifier,
+          p.privateKey,
+          p.publicKey,
+        );
+      }),
+    );
+
+    if (checkSocials.some((p) => !p)) {
+      return {
+        success: false,
+        message: "Some social media keys are invalid",
+      };
+    }
+
+    return this._socialService.saveSocials(body);
   }
 
   @Post("/generators")

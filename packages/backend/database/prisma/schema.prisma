@@ -121,7 +121,6 @@ model Channels {
 }
 
 model SocialAuth {
-  id String @id @default(uuid())
   identifier     String
   privateKey     String
   publicKey      String
@@ -130,6 +129,7 @@ model SocialAuth {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
 
+  @@id([identifier])
   @@index([identifier])
   @@index([deletedAt])
 }

@@ -3,6 +3,7 @@ import { makeId } from "@packages/backend/encryption/make.id";
 import { ioRedis } from "@packages/backend/redis/redis.service";
 import { SocialService } from "@packages/backend/database/social/social.service";
 import {Injectable} from "@nestjs/common";
+import {CheckSocialsList} from "@packages/shared/dto/socials.dto";
 
 @Injectable()
 export class SchedulerService {
@@ -15,6 +16,10 @@ export class SchedulerService {
   checkKeys(identifier: string, privateKey: string, publicKey: string) {
     const provider = SchedulerList.find((p) => p.identifier === identifier);
     return provider.test(privateKey, publicKey);
+  }
+
+  saveSocials(body: CheckSocialsList) {
+    return this._socialService.saveSocials(body);
   }
 
   async generateURL(orgId: string, refererDomain: string, identifier: string) {

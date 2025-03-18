@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaRepository } from "@packages/backend/database/prisma/prisma";
 import { Channels } from "@prisma/client";
+import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
+import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 
 @Injectable()
 export class SocialRepository {
@@ -15,6 +17,25 @@ export class SocialRepository {
         identifier,
       },
     });
+  }
+
+  async saveSocials(body: CheckSocialsList) {
+    for (const social of body.socials) {
+      await this._socialAuth.model.socialAuth.upsert({
+        where: {
+          identifier: social.identifier,
+        },
+        create: {
+          identifier: social.identifier,
+          privateKey: EncryptionService.signJWT({ key: social.privateKey }),
+          publicKey: EncryptionService.signJWT({ key: social.publicKey }),
+        },
+        update: {
+          privateKey: EncryptionService.signJWT({ key: social.privateKey }),
+          publicKey: EncryptionService.signJWT({ key: social.publicKey }),
+        },
+      });
+    }
   }
 
   save(

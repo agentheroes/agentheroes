@@ -2,14 +2,20 @@ import { Injectable } from "@nestjs/common";
 import { SocialRepository } from "@packages/backend/database/social/social.repository";
 import { Channels } from "@prisma/client";
 import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
-import {EncryptionService} from "@packages/backend/encryption/encryption.service";
+import { EncryptionService } from "@packages/backend/encryption/encryption.service";
+import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
 
 @Injectable()
 export class SocialService {
   constructor(private _socialRepository: SocialRepository) {}
 
-  getKeys(identifier: string) {
-    return this._socialRepository.getKeys(identifier);
+  async getKeys(identifier: string) {
+    const keys = await this._socialRepository.getKeys(identifier);
+    return {
+      identifier: keys.identifier,
+      privateKey: (EncryptionService.verifyJWT(keys.privateKey) as any).key,
+      publicKey: (EncryptionService.verifyJWT(keys.publicKey) as any).key,
+    };
   }
 
   async getSocialsInformation(includePassword: boolean) {
@@ -19,13 +25,17 @@ export class SocialService {
         ...all,
         ...(includePassword
           ? {
-              privateKey: EncryptionService.verifyJWT(privateKey),
-              publicKey: EncryptionService.verifyJWT(privateKey),
+              privateKey: (EncryptionService.verifyJWT(privateKey) as any).key,
+              publicKey: (EncryptionService.verifyJWT(publicKey) as any).key,
             }
           : {}),
       })),
       inSystem: SchedulerList.map((p) => p.identifier),
     };
+  }
+
+  async saveSocials(body: CheckSocialsList) {
+    return this._socialRepository.saveSocials(body);
   }
 
   save(
