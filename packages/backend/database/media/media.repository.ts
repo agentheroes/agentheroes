@@ -26,18 +26,29 @@ export class MediaRepository {
     });
   }
 
-  getAllMedia(orgId: string, body: MediaDto) {
-    return this._media.model.media.findMany({
-      where: {
-        organizationId: orgId,
-        deletedAt: null,
-      },
+  async getAllMedia(orgId: string, body: MediaDto) {
+    const where = {
+      organizationId: orgId,
+      deletedAt: null as any,
+    };
+
+    const count = await this._media.model.media.count({
+      where,
+    });
+
+    const media = await this._media.model.media.findMany({
+      where,
       orderBy: {
         createdAt: "desc",
       },
       take: 10,
       skip: 10 * (+(body.page || 1) - 1),
     });
+
+    return {
+      count: Math.ceil(count / 10),
+      media
+    }
   }
 
   deleteMedia(orgId: string, mediaId: string) {
