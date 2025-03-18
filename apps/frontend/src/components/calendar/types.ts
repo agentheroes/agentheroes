@@ -11,9 +11,7 @@ export interface Day {
 export interface Event {
   id: string;
   title: string;
-  startTime: Date;
-  endTime: Date;
-  color: string;
+  date: string;
 }
 
 export interface CalendarHeaderProps {

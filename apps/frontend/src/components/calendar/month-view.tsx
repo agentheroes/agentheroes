@@ -42,26 +42,6 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
     return result;
   }, [daysInMonth, firstDayOfMonth]);
 
-  // Group events by day
-  const eventsByDay = useMemo(() => {
-    const result: Record<number, Event[]> = {};
-
-    events.forEach((event) => {
-      if (
-        event.startTime.getMonth() === currentDate.getMonth() &&
-        event.startTime.getFullYear() === currentDate.getFullYear()
-      ) {
-        const day = event.startTime.getDate();
-        if (!result[day]) {
-          result[day] = [];
-        }
-        result[day].push(event);
-      }
-    });
-
-    return result;
-  }, [events, currentDate]);
-
   // Check if a day is today
   const isToday = (day: number) => {
     const today = new Date();
@@ -118,27 +98,6 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
                       ).format("YYYY-MM-DD") + "T" + dayjs().add(10, 'minutes').format('HH:mm:ss'),
                     )}
                   />
-                </div>
-
-                {/* Show events for this day */}
-                <div className="mt-1 space-y-1">
-                  {eventsByDay[day] &&
-                    eventsByDay[day].slice(0, 3).map((event, eventIndex) => (
-                      <div
-                        key={eventIndex}
-                        className={`text-xs truncate p-1 rounded ${event.color.replace("border-", "")}`}
-                        title={event.title}
-                      >
-                        {event.title}
-                      </div>
-                    ))}
-
-                  {/* Show "more" indicator if there are more events */}
-                  {eventsByDay[day] && eventsByDay[day].length > 3 && (
-                    <div className="text-xs text-gray-400 pl-1">
-                      +{eventsByDay[day].length - 3} more
-                    </div>
-                  )}
                 </div>
               </>
             )}

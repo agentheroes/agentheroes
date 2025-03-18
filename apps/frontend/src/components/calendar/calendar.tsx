@@ -1,96 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { CalendarHeader } from "./calendar-header";
 import { CalendarSidebar } from "./calendar-sidebar";
 import { CalendarGrid } from "./calendar-grid";
-import { ViewType, Event } from "./types";
-import { fetchCalendarEvents } from "./calendarUtils";
 import { SocialMediaProvider, useSocialMedia } from "./SocialMediaContext";
-import { useFetch } from "@frontend/hooks/use-fetch";
+import { CalendarProvider, useCalendar } from "./CalendarContext";
 
-// Create a separate CalendarContent component to use the SocialMediaContext
+// Create a separate CalendarContent component to use the contexts
 function CalendarContent() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewType, setViewType] = useState<ViewType>("Week");
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
   // Get the social media context
-  const { socials, loading: socialsLoading, error: socialsError } = useSocialMedia();
+  const { loading: socialsLoading, error: socialsError } = useSocialMedia();
   
-  // Get the fetch function from useFetch hook
-  const fetch = useFetch();
-
-  // Fetch events whenever the date or view type changes AND after socials are loaded
-  useEffect(() => {
-    // Only fetch events if socials are loaded
-    if (!socialsLoading) {
-      async function loadEvents() {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-          const fetchedEvents = await fetchCalendarEvents(viewType, currentDate, fetch);
-
-          // Transform dates from strings to Date objects if they're coming from an API
-          const processedEvents = fetchedEvents.map((event: any) => ({
-            ...event,
-            startTime:
-              event.startTime instanceof Date
-                ? event.startTime
-                : new Date(event.startTime),
-            endTime:
-              event.endTime instanceof Date
-                ? event.endTime
-                : new Date(event.endTime),
-          }));
-
-          setEvents(processedEvents);
-        } catch (err) {
-          console.error("Error loading events:", err);
-          setError("Failed to load calendar events. Please try again later.");
-        } finally {
-          setIsLoading(false);
-        }
-      }
-
-      loadEvents();
-    }
-  }, [currentDate, viewType, socialsLoading, fetch]);
-
-  const handlePrevious = () => {
-    const newDate = new Date(currentDate);
-    if (viewType === "Day") {
-      newDate.setDate(newDate.getDate() - 1);
-    } else if (viewType === "Week") {
-      newDate.setDate(newDate.getDate() - 7);
-    } else if (viewType === "Month") {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else if (viewType === "Year") {
-      newDate.setFullYear(newDate.getFullYear() - 1);
-    }
-    setCurrentDate(newDate);
-  };
-
-  const handleNext = () => {
-    const newDate = new Date(currentDate);
-    if (viewType === "Day") {
-      newDate.setDate(newDate.getDate() + 1);
-    } else if (viewType === "Week") {
-      newDate.setDate(newDate.getDate() + 7);
-    } else if (viewType === "Month") {
-      newDate.setMonth(newDate.getMonth() + 1);
-    } else if (viewType === "Year") {
-      newDate.setFullYear(newDate.getFullYear() + 1);
-    }
-    setCurrentDate(newDate);
-  };
-
-  const handleToday = () => {
-    setCurrentDate(new Date());
-  };
+  // Get the calendar context
+  const { 
+    currentDate, 
+    viewType, 
+    events, 
+    isLoading, 
+    error, 
+    handlePrevious, 
+    handleNext, 
+    handleToday, 
+    setViewType 
+  } = useCalendar();
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
@@ -153,11 +85,13 @@ function CalendarContent() {
   );
 }
 
-// Main Calendar component that provides the SocialMediaContext
+// Main Calendar component that provides both contexts
 export function Calendar() {
   return (
     <SocialMediaProvider>
-      <CalendarContent />
+      <CalendarProvider>
+        <CalendarContent />
+      </CalendarProvider>
     </SocialMediaProvider>
   );
-}
+} 

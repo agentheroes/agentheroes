@@ -42,11 +42,7 @@ export function CalendarGrid({ currentDate, viewType, events }: CalendarGridProp
                 key={index}
                 day={day}
                 timeSlots={timeSlots}
-                events={events.filter(event => 
-                  event.startTime.getDate() === day.date.getDate() && 
-                  event.startTime.getMonth() === day.date.getMonth() &&
-                  event.startTime.getFullYear() === day.date.getFullYear()
-                )}
+                events={[]}
                 isToday={day.isToday}
               />
             ))}

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { CalendarEvent } from "./calendar-event";
 import { TimeSlot } from "./time-slot";
 import { Event } from "./types";
 import { SlotComponent } from "@frontend/components/calendar/slot.component";
@@ -14,34 +13,6 @@ interface DayViewProps {
 }
 
 export function DayView({ currentDate, timeSlots, events }: DayViewProps) {
-  // Filter events for the current day
-  const dayEvents = events.filter(
-    (event) =>
-      event.startTime.getDate() === currentDate.getDate() &&
-      event.startTime.getMonth() === currentDate.getMonth() &&
-      event.startTime.getFullYear() === currentDate.getFullYear(),
-  );
-
-  // Function to calculate the position and height of an event
-  const getEventPosition = (event: Event) => {
-    const startHour = event.startTime.getHours();
-    const startMinute = event.startTime.getMinutes();
-    const endHour = event.endTime.getHours();
-    const endMinute = event.endTime.getMinutes();
-
-    // Calculate top position
-    const firstSlotHour = parseInt(timeSlots[0].split(":")[0], 10);
-    const topPosition =
-      (startHour - firstSlotHour) * 64 + (startMinute / 60) * 64; // 64px is the height of a time slot (h-16)
-
-    // Calculate event height
-    const durationInHours =
-      endHour - startHour + (endMinute - startMinute) / 60;
-    const height = durationInHours * 64;
-
-    return { top: topPosition, height };
-  };
-
   // Format day name
   const dayName = currentDate.toLocaleString("default", { weekday: "short" });
   const isToday = new Date().toDateString() === currentDate.toDateString();
@@ -82,7 +53,7 @@ export function DayView({ currentDate, timeSlots, events }: DayViewProps) {
           <div className="relative">
             {/* Render time slot backgrounds */}
             {timeSlots.map((time, index) => (
-              <div key={index} className="relative h-16 border-b border-gray-800">
+              <div key={index} className="relative min-h-16 border-b border-gray-800">
                 <SlotComponent
                   date={dayjs(
                     dayjs(currentDate).format("YYYY-MM-DD") + "T" + time,
@@ -90,20 +61,6 @@ export function DayView({ currentDate, timeSlots, events }: DayViewProps) {
                 />
               </div>
             ))}
-
-            {/* Render events */}
-            {dayEvents.map((event) => {
-              const { top, height } = getEventPosition(event);
-              return (
-                <CalendarEvent
-                  key={event.id}
-                  title={event.title}
-                  time={`${event.startTime.getHours()}:${event.startTime.getMinutes().toString().padStart(2, "0")} ${event.startTime.getHours() >= 12 ? "PM" : "AM"}`}
-                  color={event.color}
-                  style={{ top: `${top}px`, height: `${height}px` }}
-                />
-              );
-            })}
           </div>
         </div>
       </div>
