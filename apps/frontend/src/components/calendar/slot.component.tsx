@@ -23,8 +23,8 @@ const calculateDates = (view: "day" | "month" | "week", date: dayjs.Dayjs) => {
   }
 
   return {
-    slotStart: date.startOf("hour"),
-    slotEnd: date.endOf("hour").add(1, "minute"),
+    slotStart: date.startOf("hour").subtract(1, "minute"),
+    slotEnd: date.endOf("hour"),
   };
 };
 
@@ -63,6 +63,7 @@ export const SlotComponent: FC<{
               key={event.id}
               title={event.title}
               channel={event.channel}
+              type={event.type}
               time={dayjs(event.date).format("HH:mm")}
             />
           );

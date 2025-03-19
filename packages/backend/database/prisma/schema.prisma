@@ -134,6 +134,7 @@ model Posts {
   content String
   media String
   group String
+  type String
   order Int
   date           DateTime
   createdAt      DateTime     @default(now())
@@ -142,6 +143,7 @@ model Posts {
 
   @@id([id, order])
   @@index([organizationId])
+  @@index([type])
   @@index([channelId])
   @@index([group])
   @@index([order])

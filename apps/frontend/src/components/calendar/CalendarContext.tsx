@@ -47,9 +47,6 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const isInitialMount = useRef(true);
-  const isUpdatingRef = useRef(false);
 
   // Initialize state from URL query parameters if they exist
   const initializeFromUrl = () => {
@@ -134,6 +131,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         title: event.content,
         date: event.date,
         channel: event.channelId,
+        type: event.type
       }));
 
       setEvents(transformedEvents);

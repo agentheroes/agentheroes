@@ -139,6 +139,7 @@ export class SocialRepository {
               id: item.channel,
             },
           },
+          type: posts.type,
           content: body.text,
           media: JSON.stringify(body.media),
           date: dayjs.utc(posts.date).toDate(),
