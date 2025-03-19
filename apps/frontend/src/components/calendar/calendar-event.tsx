@@ -8,9 +8,10 @@ interface CalendarEventProps {
   time: string;
   channel: SocialMedia;
   type: string;
+  group: string;
 }
 
-export function CalendarEvent({ title, time, channel, type }: CalendarEventProps) {
+export function CalendarEvent({ title, time, channel, type, group }: CalendarEventProps) {
   const socialIconUrl = `/socials/${channel.identifier}.png`;
 
   return (

@@ -64,6 +64,7 @@ export const SlotComponent: FC<{
               title={event.title}
               channel={event.channel}
               type={event.type}
+              group={event.group}
               time={dayjs(event.date).format("HH:mm")}
             />
           );

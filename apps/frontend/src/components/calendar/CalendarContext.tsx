@@ -131,7 +131,8 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         title: event.content,
         date: event.date,
         channel: event.channelId,
-        type: event.type
+        type: event.type,
+        group: event.group,
       }));
 
       setEvents(transformedEvents);

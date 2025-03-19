@@ -112,12 +112,27 @@ export class SocialRepository {
         organizationId: orgId,
         order: 1,
         date: {
-          gte: dayjs.utc(body.startDate).toDate(),
-          lte: dayjs.utc(body.endDate).toDate(),
+          gte: dayjs.utc(body.startDate).startOf('day').toDate(),
+          lte: dayjs.utc(body.endDate).endOf('day').add(1, 'minute').toDate(),
         },
         deletedAt: null,
       },
     });
+  }
+
+  async getAllPostsPerGroup(orgId: string, group: string) {
+    return (await this._posts.model.posts.findMany({
+      where: {
+        organizationId: orgId,
+        group
+      },
+      orderBy: {
+        order: 'asc'
+      }
+    })).map(p => ({
+      ...p,
+      media: JSON.parse(p.media)
+    }))
   }
 
   async savePost(orgId: string, posts: PostCreateDto) {
@@ -128,6 +143,7 @@ export class SocialRepository {
 
         const data = {
           order: body.order,
+          group,
           organization: {
             connect: {
               id: orgId,
@@ -155,7 +171,6 @@ export class SocialRepository {
             organizationId: orgId,
           },
           create: {
-            group,
             ...data,
           },
           update: {

@@ -14,6 +14,7 @@ export interface Event {
   date: string;
   channel: string;
   type: string;
+  group: string;
 }
 
 export interface CalendarHeaderProps {
@@ -31,22 +32,8 @@ export interface CalendarGridProps {
   events: Event[];
 }
 
-export interface DayColumnProps {
-  day: Day;
-  timeSlots: string[];
-  events: Event[];
-  isToday: boolean;
-}
-
 export interface TimeSlotProps {
   time: string;
-}
-
-export interface CalendarEventProps {
-  title: string;
-  time: string;
-  color: string;
-  style: CSSProperties;
 }
 
 export interface ChannelItemProps {
@@ -56,10 +43,3 @@ export interface ChannelItemProps {
   identifier: string;
   isSelected?: boolean;
 }
-
-export interface SocialMedia {
-  id: string;
-  identifier: string;
-  name: string;
-  profilePic: string;
-} 

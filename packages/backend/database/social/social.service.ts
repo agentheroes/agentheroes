@@ -59,4 +59,8 @@ export class SocialService {
   async savePost(orgId: string, body: PostCreateDto) {
     return this._socialRepository.savePost(orgId, body);
   }
+
+  async getAllPostsPerGroup(orgId: string, id: string) {
+    return this._socialRepository.getAllPostsPerGroup(orgId, id);
+  }
 }

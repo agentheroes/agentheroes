@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import {Body, Controller, Get, Param, Post, Query} from "@nestjs/common";
 import { SchedulerService } from "@packages/backend/scheduler/scheduler.service";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
@@ -47,10 +47,18 @@ export class SocialController {
     return this._socialService.getOrganizationsPosts(organization.id, body);
   }
 
+  @Get("/calendar/:group")
+  async calendarGroup(
+      @GetOrganizationFromRequest() organization: Organization,
+      @Param('id') id: string
+  ) {
+    return this._socialService.getAllPostsPerGroup(organization.id, id);
+  }
+
   @Post("/posts")
   savePosts(
-      @GetOrganizationFromRequest() org: Organization,
-      @Body() posts: PostCreateDto
+    @GetOrganizationFromRequest() org: Organization,
+    @Body() posts: PostCreateDto,
   ) {
     return this._socialService.savePost(org.id, posts);
   }
