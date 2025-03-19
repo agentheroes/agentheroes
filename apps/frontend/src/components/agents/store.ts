@@ -11,6 +11,7 @@ export interface TreeState {
 }
 
 const id = makeId(10);
+const id2 = makeId(10);
 // Define the initial state using that type
 const initialState: TreeState[] = [
   {
@@ -27,6 +28,24 @@ const initialState: TreeState[] = [
   {
     id: makeId(10),
     parent: id,
+    type: NodeType.TRIGGER,
+    data: {},
+  },
+  {
+    id: id2,
+    parent: id,
+    type: NodeType.TRIGGER,
+    data: {},
+  },
+  {
+    id: makeId(10),
+    parent: id2,
+    type: NodeType.TRIGGER,
+    data: {},
+  },
+  {
+    id: makeId(10),
+    parent: id2,
     type: NodeType.TRIGGER,
     data: {},
   },
