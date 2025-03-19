@@ -1,39 +1,39 @@
 "use client";
 
-import { FC, Fragment } from "react";
-import {Provider, useSelector} from "react-redux";
+import { FC } from "react";
+import { Provider, useSelector } from "react-redux";
 import store, {
   TreeState,
-  useAppSelector,
   treeSlice,
   useAppDispatch,
 } from "@frontend/components/agents/store";
 import { makeId } from "@packages/backend/encryption/make.id";
 import { NodeType } from "@packages/shared/agents/agent.flow";
-import { ArcherContainer } from "react-archer";
-import {createSelector} from "@reduxjs/toolkit";
+import { ArcherContainer, ArcherElement } from "react-archer";
+import { createSelector } from "@reduxjs/toolkit";
 
 // Selectors
 const selectTree = (state: { tree: TreeState[] }) => state.tree;
 
-const selectRootNodes = createSelector(
-  [selectTree],
-  (tree) => tree.filter((item) => !item.parent)
+const selectRootNodes = createSelector([selectTree], (tree) =>
+  tree.filter((item) => !item.parent),
 );
 
 const makeSelectChildNodes = () => {
   return createSelector(
     [selectTree, (_: any, parentId: string) => parentId],
-    (tree, parentId) => tree.filter((item) => item.parent === parentId)
+    (tree, parentId) => tree.filter((item) => item.parent === parentId),
   );
 };
 
-// Node card component - renders a single node box
-const NodeCard: FC<{ node: TreeState; isRoot?: boolean }> = ({
-  node,
-  isRoot = false,
-}) => {
+// Unified Node component that can render both root and child nodes
+const NodeComponent: FC<{
+  node: TreeState;
+  isRoot?: boolean;
+}> = ({ node, isRoot = false }) => {
   const dispatch = useAppDispatch();
+  const selectChildNodes = makeSelectChildNodes();
+  const childNodes = useSelector((state) => selectChildNodes(state, node.id));
 
   const addChildNode = () => {
     dispatch(
@@ -46,83 +46,49 @@ const NodeCard: FC<{ node: TreeState; isRoot?: boolean }> = ({
     );
   };
 
-  return (
-    <div
-      className={`min-w-[200px] rounded-md p-4 bg-white text-black border border-gray-300 shadow-sm ${isRoot ? "bg-gray-100" : ""}`}
-    >
-      <div className="font-medium">
-        {isRoot ? "API / MCP / SCHEDULE" : "RSS"}
-      </div>
+  const shouldShowAddButton =
+    !isRoot || (isRoot && node.type === NodeType.TRIGGER);
 
-      {!isRoot && (
-        <div className="mt-4">
-          <button
-            onClick={addChildNode}
-            className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50"
-          >
-            Add Node
-          </button>
+  return (
+    <div className="flex flex-col items-center gap-[50px]">
+      <ArcherElement
+        id={node.id}
+        relations={childNodes.map((p) => ({
+          targetId: p.id,
+          targetAnchor: "top",
+          sourceAnchor: "bottom",
+          style: { strokeDasharray: "5,5" },
+        }))}
+      >
+        <div
+          className={`min-w-[200px] rounded-md p-4 bg-white text-black border border-gray-300 shadow-sm ${
+            isRoot ? "bg-gray-100" : ""
+          }`}
+        >
+          {shouldShowAddButton && (
+            <div className="mt-4">
+              <button
+                onClick={addChildNode}
+                className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50"
+              >
+                Add Node
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </ArcherElement>
 
-      {isRoot && node.type === NodeType.TRIGGER && (
-        <div className="mt-4">
-          <button
-            onClick={addChildNode}
-            className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50"
-          >
-            Add Node
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Child nodes container component
-const ChildNodesContainer: FC<{
-  parent: TreeState;
-}> = ({ parent }) => {
-  const selectChildNodes = makeSelectChildNodes();
-  const childNodes = useSelector((state) => selectChildNodes(state, parent.id));
-
-  if (childNodes.length === 0) return null;
-
-  return (
-    <div className="flex justify-center mt-2">
-      <div className="flex flex-row space-x-12">
-        {childNodes.map((childNode) => (
-          <div key={childNode.id} className="flex flex-col items-center">
-            <NodeBranch node={childNode} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Node branch component - renders a node and its children
-const NodeBranch: FC<{ node: TreeState }> = ({ node }) => {
-  const selectChildNodes = makeSelectChildNodes();
-  const childNodes = useSelector((state) => selectChildNodes(state, node.id));
-
-  return (
-    <div className="flex flex-col items-center">
-      <NodeCard node={node} />
-
+      {/* Child Content */}
       {childNodes.length > 0 && (
-        <>
-          <div className="mt-4 flex flex-col items-center">
-            <div className="text-sm text-gray-500">Generate image</div>
-            <div className="text-sm text-gray-500 mb-2">Upload picture</div>
-
-            <button className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50">
-              Add Node
-            </button>
+        <div className="flex justify-center mt-2">
+          <div className="flex flex-row space-x-12">
+            {childNodes.map((childNode) => (
+              <div key={childNode.id} className="flex flex-col items-center">
+                <NodeComponent node={childNode} />
+              </div>
+            ))}
           </div>
-
-          <ChildNodesContainer parent={node} />
-        </>
+        </div>
       )}
     </div>
   );
@@ -137,12 +103,7 @@ export const RenderTree: FC = () => {
   // We'll just take the first root node
   const rootNode = rootNodes[0];
 
-  return (
-    <div className="flex flex-col items-center">
-      <NodeCard node={rootNode} isRoot={true} />
-      <ChildNodesContainer parent={rootNode} />
-    </div>
-  );
+  return <NodeComponent node={rootNode} isRoot={true} />;
 };
 
 // Main component that starts the rendering
@@ -153,7 +114,7 @@ export const RenderStepComponent: FC = () => {
         <h2 className="text-2xl font-bold">Create Agent</h2>
         <div className="flex flex-col mt-4">
           <Provider store={store}>
-            <ArcherContainer strokeColor="red">
+            <ArcherContainer strokeColor="#FD7302">
               <RenderTree />
             </ArcherContainer>
           </Provider>
