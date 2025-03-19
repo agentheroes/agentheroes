@@ -5,7 +5,9 @@ import { CalendarSidebar } from "./calendar-sidebar";
 import { CalendarGrid } from "./calendar-grid";
 import { SocialMediaProvider, useSocialMedia } from "./SocialMediaContext";
 import { CalendarProvider, useCalendar } from "./CalendarContext";
-import {PostDialogProvider} from "@frontend/components/post";
+import { PostDialogProvider } from "@frontend/components/post";
+import {DndProvider} from "react-dnd";
+import {HTML5Backend} from "react-dnd-html5-backend";
 
 // Create a separate CalendarContent component to use the contexts
 function CalendarContent() {
@@ -72,11 +74,13 @@ function CalendarContent() {
               )}
 
               {!isLoading && !error && (
-                <CalendarGrid
-                  currentDate={currentDate}
-                  viewType={viewType}
-                  events={events}
-                />
+                <DndProvider backend={HTML5Backend}>
+                  <CalendarGrid
+                    currentDate={currentDate}
+                    viewType={viewType}
+                    events={events}
+                  />
+                </DndProvider>
               )}
             </>
           )}

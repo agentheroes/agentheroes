@@ -63,4 +63,8 @@ export class SocialService {
   async getAllPostsPerGroup(orgId: string, id: string) {
     return this._socialRepository.getAllPostsPerGroup(orgId, id);
   }
+
+  async changePostDate(orgId: string, group: string, date: string) {
+    return this._socialRepository.changePostDate(orgId, group, date);
+  }
 }

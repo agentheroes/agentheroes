@@ -8,7 +8,6 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
   PostCreateDto,
-  PostListItemDto,
 } from "@packages/shared/dto/socials/post.create.dto";
 import { v4 as uuidv4 } from "uuid";
 
@@ -133,6 +132,18 @@ export class SocialRepository {
       ...p,
       media: JSON.parse(p.media)
     }))
+  }
+
+  async changePostDate(orgId: string, group: string, date: string) {
+    return this._posts.model.posts.updateMany({
+      where: {
+        organizationId: orgId,
+        group
+      },
+      data: {
+        date
+      }
+    })
   }
 
   async savePost(orgId: string, posts: PostCreateDto) {

@@ -8,6 +8,8 @@ import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import {useSocialMedia} from "@frontend/components/calendar/SocialMediaContext";
+import {useDrop} from "react-dnd";
+import {clsx} from "clsx";
 
 // Extend dayjs with necessary plugins
 dayjs.extend(isBetween);
@@ -34,6 +36,24 @@ export const SlotComponent: FC<{
 }> = (props) => {
   const calendar = useCalendar();
   const social = useSocialMedia();
+
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
+    accept: 'event',
+    drop: (item: {group: string}) => {
+      if (props.date.isBefore(dayjs())) {
+        return;
+      }
+      calendar.changeEventDate(item.group, props.date.toISOString());
+    },
+    collect: monitor => {
+      return {
+        isOver: !!monitor.isOver(),
+        canDrop: monitor.canDrop() && props.date.isAfter(dayjs()),
+        draggingColor: monitor.getItemType() as string,
+      }
+    },
+  }), [calendar, props.date]);
+
   const events = useMemo(() => {
     // Log current slot's date for debugging
     return calendar.events.filter((event) => {
@@ -55,7 +75,7 @@ export const SlotComponent: FC<{
 
   return (
     <>
-      <div className="flex flex-col gap-[3px]">
+      <div className={clsx("flex flex-col gap-[3px] h-full", canDrop && isOver && 'bg-white/20')} ref={drop as any}>
         <SlotComponentInner {...props} />
         {events.map((event) => {
           return (

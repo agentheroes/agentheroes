@@ -25,6 +25,7 @@ interface CalendarContextType {
   handleToday: () => void;
   setViewType: (view: ViewType) => void;
   refreshEvents: () => Promise<void>;
+  changeEventDate: (group: string, date: string) => void;
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(
@@ -82,6 +83,29 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fetch = useFetch();
+
+  const changeEventDate = useCallback(
+    (group: string, date: string) => {
+      fetch(`/socials/calendar/move/${group}`, {
+        body: JSON.stringify({ date }),
+        method: "PUT",
+      });
+
+      setEvents((e) => {
+        return e.map((p) => {
+          if (p.group === group) {
+            return {
+              ...p,
+              date,
+            };
+          }
+
+          return p;
+        });
+      });
+    },
+    [events],
+  );
 
   // Function to update the URL with current date and view type
   const updateUrlParams = useCallback(() => {
@@ -206,6 +230,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         events,
         isLoading,
         error,
+        changeEventDate,
         handlePrevious,
         handleNext,
         handleToday,
