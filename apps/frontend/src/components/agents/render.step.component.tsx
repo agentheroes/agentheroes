@@ -57,7 +57,6 @@ const NodeComponent: FC<{
           targetId: p.id,
           targetAnchor: "top",
           sourceAnchor: "bottom",
-          style: { strokeDasharray: "5,5" },
         }))}
       >
         <div
@@ -109,9 +108,13 @@ export const RenderTree: FC = () => {
 // Main component that starts the rendering
 export const RenderStepComponent: FC = () => {
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col mb-6">
-        <h2 className="text-2xl font-bold">Create Agent</h2>
+    <>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col mb-6">
+          <h2 className="text-2xl font-bold">Create Agent</h2>
+        </div>
+      </div>
+      <div>
         <div className="flex flex-col mt-4">
           <Provider store={store}>
             <ArcherContainer strokeColor="#FD7302">
@@ -120,6 +123,6 @@ export const RenderStepComponent: FC = () => {
           </Provider>
         </div>
       </div>
-    </div>
+    </>
   );
 };
