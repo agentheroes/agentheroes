@@ -104,6 +104,8 @@ export class SocialRepository {
         identifier: true,
         name: true,
         profilePic: true,
+        shouldRefresh: true,
+        selectionRequired: true,
       },
     });
   }

@@ -3,7 +3,6 @@ import { makeId } from "@packages/backend/encryption/make.id";
 import { ioRedis } from "@packages/backend/redis/redis.service";
 import { SocialService } from "@packages/backend/database/social/social.service";
 import { Injectable } from "@nestjs/common";
-import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
 
 @Injectable()
 export class SchedulerService {
