@@ -213,6 +213,9 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.0.0
+      react-archer:
+        specifier: ^4.4.0
+        version: 4.4.0(@types/react@19.0.10)(prop-types@15.8.1)(react@19.0.0)
       react-dnd:
         specifier: ^16.0.1
         version: 16.0.1(@types/node@20.17.24)(@types/react@19.0.10)(react@19.0.0)
@@ -4846,6 +4849,13 @@ packages:
     resolution: {integrity: sha512-RmkhL8CAyCRPXCE28MMH0z2PNWQBNk2Q09ZdxM9IOOXwxwZbN+qbWaatPkdkWIKL2ZVDImrN/pK5HTRz2PcS4g==}
     engines: {node: '>= 0.8'}
 
+  react-archer@4.4.0:
+    resolution: {integrity: sha512-m9mEpGHphwWZW7mzk7UVGJVwom353lAbDQ/DJIYH59LnEpEVyaE3KxZKBChB5WYipyOl3HhRlVQk+TknJbGfSQ==}
+    peerDependencies:
+      '@types/react': ^16.8.8 || ^17 || ^18
+      prop-types: ^15.6.2
+      react: ^16.9.0 || ^17 || ^18
+
   react-dnd-html5-backend@16.0.1:
     resolution: {integrity: sha512-Wu3dw5aDJmOGw8WjH1I1/yTH+vlXEL4vmjk5p+MHxP8HuHJS1lAGeIdG/hze1AvNeXWo/JgULV87LyQOr+r5jw==}
 
@@ -4868,6 +4878,9 @@ packages:
     resolution: {integrity: sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==}
     peerDependencies:
       react: ^19.0.0
+
+  react-fast-compare@2.0.4:
+    resolution: {integrity: sha512-suNP+J1VU1MWFKcyt7RtjiSWUjvidmQSlqu+eHslq+342xCbGTYmC0mEhPCOHxlW0CywylOC1u2DFAT+bv4dBw==}
 
   react-hook-form@7.54.2:
     resolution: {integrity: sha512-eHpAUgUjWbZocoQYUHposymRb4ZP6d0uwUnooL2uOybA9/3tPUvoAKqEWK1WaSiTxxOfTpffNZP7QwlnM3/gEg==}
@@ -5025,6 +5038,9 @@ packages:
   resend@4.1.2:
     resolution: {integrity: sha512-km0btrAj/BqIaRlS+SoLNMaCAUUWEgcEvZpycfVvoXEwAHCxU+vp/ikxPgKRkyKyiR2iDcdUq5uIBTDK9oSSSQ==}
     engines: {node: '>=18'}
+
+  resize-observer-polyfill@1.5.0:
+    resolution: {integrity: sha512-M2AelyJDVR/oLnToJLtuDJRBBWUGUvvGigj1411hXhAdyFWqMaqHp7TixW3FpiLuVaikIcR1QL+zqoJoZlOgpg==}
 
   resolve-cwd@3.0.0:
     resolution: {integrity: sha512-OrZaX2Mb+rJCpH/6CpSqt9xFVpN++x01XnN2ie9g6P5/3xelLAkXWVADpdz1IHD/KFfEXyE6V0U01OQ3UO2rEg==}
@@ -11198,6 +11214,14 @@ snapshots:
       iconv-lite: 0.6.3
       unpipe: 1.0.0
 
+  react-archer@4.4.0(@types/react@19.0.10)(prop-types@15.8.1)(react@19.0.0):
+    dependencies:
+      '@types/react': 19.0.10
+      prop-types: 15.8.1
+      react: 19.0.0
+      react-fast-compare: 2.0.4
+      resize-observer-polyfill: 1.5.0
+
   react-dnd-html5-backend@16.0.1:
     dependencies:
       dnd-core: 16.0.1
@@ -11218,6 +11242,8 @@ snapshots:
     dependencies:
       react: 19.0.0
       scheduler: 0.25.0
+
+  react-fast-compare@2.0.4: {}
 
   react-hook-form@7.54.2(react@19.0.0):
     dependencies:
@@ -11381,6 +11407,8 @@ snapshots:
     transitivePeerDependencies:
       - react
       - react-dom
+
+  resize-observer-polyfill@1.5.0: {}
 
   resolve-cwd@3.0.0:
     dependencies:
