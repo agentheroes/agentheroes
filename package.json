@@ -59,6 +59,7 @@
     "@types/sharp": "^0.32.0",
     "@types/uuid": "^10.0.0",
     "@types/yup": "^0.32.0",
+    "@xyflow/react": "^12.4.4",
     "adm-zip": "^0.5.16",
     "ai": "^4.1.40",
     "amqp-connection-manager": "^4.1.14",
