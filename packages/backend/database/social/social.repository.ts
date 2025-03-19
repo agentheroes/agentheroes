@@ -164,10 +164,7 @@ export class SocialRepository {
 
         await this._posts.model.posts.upsert({
           where: {
-            id_order: {
-              id: body.id || uuid,
-              order: body.order,
-            },
+            id: body.id || uuid,
             organizationId: orgId,
           },
           create: {
