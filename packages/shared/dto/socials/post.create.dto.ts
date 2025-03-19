@@ -45,9 +45,9 @@ export class PostCreateDto {
   @IsNotEmpty()
   date: string; // ISO date in YYYY-MM-DD format
 
-  @IsEnum(["schedule", "draft"])
+  @IsEnum(["schedule", "draft", "now"])
   @IsNotEmpty()
-  type: "schedule" | "draft";
+  type: "schedule" | "draft" | "now";
 
   @IsArray()
   @ValidateNested({ each: true })

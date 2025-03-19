@@ -76,7 +76,7 @@ export const SlotComponent: FC<{
   return (
     <>
       <div className={clsx("flex flex-col gap-[3px] h-full", canDrop && isOver && 'bg-white/20')} ref={drop as any}>
-        <SlotComponentInner {...props} />
+        <SlotComponentInner {...props} noEvents={events.length === 0} />
         {events.map((event) => {
           return (
             <CalendarEvent
@@ -95,8 +95,8 @@ export const SlotComponent: FC<{
   );
 };
 
-export const SlotComponentInner: FC<{ date: dayjs.Dayjs }> = (props) => {
-  const { date } = props;
+export const SlotComponentInner: FC<{ date: dayjs.Dayjs, noEvents: boolean }> = (props) => {
+  const { date, noEvents } = props;
   const { openPostDialog } = usePostDialog();
 
   const isBefore = useMemo(() => {
@@ -118,8 +118,8 @@ export const SlotComponentInner: FC<{ date: dayjs.Dayjs }> = (props) => {
   }
 
   return (
-    <div className="transition-opacity opacity-0 hover:opacity-100 relative z-[100]">
-      <Button className="w-full" onClick={handleAddPost}>
+    <div className={clsx("transition-opacity opacity-0 hover:opacity-100 relative z-[300]", noEvents && 'h-full')}>
+      <Button className={clsx("w-full", noEvents && 'h-full')} onClick={handleAddPost}>
         + Add post
       </Button>
     </div>

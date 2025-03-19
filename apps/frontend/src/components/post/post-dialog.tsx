@@ -72,7 +72,7 @@ function PostDialogContent({
   const [editingCustomChannel, setEditingCustomChannel] = useState<
     string | null
   >(null);
-  const [postType, setPostType] = useState<"schedule" | "draft">("schedule");
+  const [postType, setPostType] = useState<"schedule" | "draft" | "now">("schedule");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { socials } = useSocialMedia();
@@ -96,7 +96,7 @@ function PostDialogContent({
 
           if (postData && postData.length > 0) {
             // Set post type from the first item
-            setPostType(postData[0].type as "schedule" | "draft");
+            setPostType(postData[0].type as "schedule" | "draft" | "now");
 
             // Transform API data to our format
             const formattedPosts = postData.map((post: any) => ({
@@ -238,7 +238,7 @@ function PostDialogContent({
       // Format the data according to the required structure
       const formattedData: {
         date: string;
-        type: "schedule" | "draft";
+        type: "schedule" | "draft" | "now";
         list: {
           channel: string;
           posts: {
@@ -326,6 +326,102 @@ function PostDialogContent({
         description: isEditing
           ? "Failed to update post. Please try again."
           : "Failed to create post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handler for the Post Now button
+  const handlePostNow = async () => {
+    try {
+      setIsSubmitting(true);
+
+      // Format the data according to the required structure, but with current date and "now" type
+      const formattedData: {
+        date: string;
+        type: "schedule" | "draft" | "now"; // Using "now" type for immediate posting
+        list: {
+          channel: string;
+          posts: {
+            id?: string;
+            order: number;
+            text: string;
+            media: string[];
+          }[];
+        }[];
+        group?: string;
+      } = {
+        date: dayjs().utc().format("YYYY-MM-DDTHH:mm:ss"), // Current date/time
+        type: "schedule",
+        list: selectedChannels
+          .map((channelId) => {
+            const posts = getPostsForChannel(channelId);
+
+            return {
+              channel: channelId,
+              posts: posts
+                .filter((post) => post.text.trim() !== "") // Filter out empty posts
+                .map((post, index) => ({
+                  // Include the post ID when editing
+                  ...(isEditing && { id: post.id }),
+                  order: index + 1,
+                  text: post.text,
+                  media: post.media.map((mediaItem) =>
+                    typeof mediaItem.media === "string"
+                      ? mediaItem.media
+                      : mediaItem.media,
+                  ),
+                })),
+            };
+          })
+          .filter((item) => item.posts.length > 0), // Filter out channels with no posts
+      };
+
+      // Add group ID if editing
+      if (isEditing && groupId) {
+        formattedData.group = groupId;
+      }
+
+      // Use the same endpoint and method for both creating and updating
+      const response = await fetch("/socials/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      // Refresh the calendar events to update the UI
+      try {
+        await refreshEvents();
+        console.log("Calendar events refreshed successfully");
+      } catch (refreshError) {
+        console.error("Failed to refresh calendar events:", refreshError);
+        // Continue with success flow even if calendar refresh fails
+      }
+
+      toast({
+        title: "Success",
+        description: "Post published immediately",
+      });
+
+      // Reset form and close dialog
+      setGlobalPosts([{ id: crypto.randomUUID(), text: "", media: [] }]);
+      setCustomChannelContents([]);
+      setSelectedChannels([]);
+      setEditingCustomChannel(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error posting immediately:", error);
+      toast({
+        title: "Error",
+        description: "Failed to publish post. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -518,27 +614,39 @@ function PostDialogContent({
           </div>
         )}
 
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!isFormValid || isSubmitting || isLoading}
-          >
-            {isSubmitting
-              ? isEditing
-                ? "Updating..."
-                : "Creating..."
-              : isEditing
-                ? "Update Post"
-                : "Create Post"}
-          </Button>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center w-full">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="default"
+              onClick={handlePostNow}
+              disabled={!isFormValid || isSubmitting || isLoading}
+            >
+              {isSubmitting ? "Posting..." : "Post Now"}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!isFormValid || isSubmitting || isLoading}
+            >
+              {isSubmitting
+                ? isEditing
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditing
+                  ? "Update Post"
+                  : "Create Post"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

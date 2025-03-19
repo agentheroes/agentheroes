@@ -40,7 +40,7 @@ export function CalendarEvent({
   return (
     <>
       <div
-        className={`rounded-md p-1 shadow-btn border-l-4 bg-[#FD7302] flex items-center max-w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
+        className={`rounded-md p-1 shadow-btn border-l-4 bg-[#FD7302] flex items-center max-w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity relative z-[2]`}
         onClick={handleEventClick}
         ref={drag as any}
       >
