@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { generateTimeSlots, generateWeekDays } from './calendarUtils';
+import { generateTimeSlots, generateWeekDays } from './calendar.utils';
 import { CalendarGridProps, Day } from './types';
 import { DayView } from './day-view';
 import { MonthView } from './month-view';

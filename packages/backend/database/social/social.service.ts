@@ -6,10 +6,15 @@ import { EncryptionService } from "@packages/backend/encryption/encryption.servi
 import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
 import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
 import { PostCreateDto } from "@packages/shared/dto/socials/post.create.dto";
+import { BullMqClient } from "@packages/backend/bull-mq-transport-new/client";
+import dayjs from "dayjs";
 
 @Injectable()
 export class SocialService {
-  constructor(private _socialRepository: SocialRepository) {}
+  constructor(
+    private _socialRepository: SocialRepository,
+    private _workerServiceProducer: BullMqClient,
+  ) {}
 
   async getKeys(identifier: string) {
     const keys = await this._socialRepository.getKeys(identifier);
@@ -41,6 +46,24 @@ export class SocialService {
     return this._socialRepository.saveSocials(body);
   }
 
+  async deletePost(group: string) {
+    await this._workerServiceProducer.delete("post", group);
+  }
+
+  async schedulePost(group: string, date: string) {
+    const delay = dayjs.utc(date).diff(dayjs(), "millisecond");
+    this._workerServiceProducer.emit("post", {
+      id: group,
+      options: {
+        delay: delay < 0 ? 0 : delay,
+      },
+      payload: {
+        id: group,
+        delay: delay < 0 ? 0 : delay,
+      },
+    });
+  }
+
   save(
     org: string,
     info: Omit<Channels, "createdAt" | "updatedAt" | "deletedAt" | "id">,
@@ -57,7 +80,13 @@ export class SocialService {
   }
 
   async savePost(orgId: string, body: PostCreateDto) {
-    return this._socialRepository.savePost(orgId, body);
+    const groups = await this._socialRepository.savePost(orgId, body);
+    for (const group of groups) {
+      await this.deletePost(group);
+      await this.schedulePost(group, body.date);
+    }
+
+    return groups;
   }
 
   async getAllPostsPerGroup(orgId: string, id: string) {
@@ -65,6 +94,8 @@ export class SocialService {
   }
 
   async changePostDate(orgId: string, group: string, date: string) {
-    return this._socialRepository.changePostDate(orgId, group, date);
+    await this._socialRepository.changePostDate(orgId, group, date);
+    await this.deletePost(group);
+    await this.schedulePost(group, date);
   }
 }

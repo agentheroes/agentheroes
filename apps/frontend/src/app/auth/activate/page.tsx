@@ -1,4 +1,4 @@
-import { ActivateForm } from "@frontend/components/auth/ActivateForm"
+import { ActivateForm } from "@frontend/components/auth/activate.form"
 
 export default function ActivatePage() {
   return (

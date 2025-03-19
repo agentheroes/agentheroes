@@ -5,7 +5,7 @@ export * from './calendar-grid';
 export * from './calendar-event';
 export * from './time-slot';
 export * from './channel-item';
-export * from './calendarUtils';
+export * from './calendar.utils';
 export * from './types';
 export * from './day-view';
 export * from './month-view';

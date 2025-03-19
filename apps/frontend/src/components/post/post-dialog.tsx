@@ -12,8 +12,8 @@ import {
 } from "@frontend/components/ui/dialog";
 import { Button } from "@frontend/components/ui/button";
 import { SocialMediaChannelSelector } from "./social-media-channel-selector";
-import { useSocialMedia } from "../calendar/SocialMediaContext";
-import { useCalendar } from "../calendar/CalendarContext";
+import { useSocialMedia } from "../calendar/social.media.context";
+import { useCalendar } from "../calendar/calendar.context";
 import { Plus } from "lucide-react";
 import { Media } from "@frontend/types/media";
 import {

@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useFetch } from "@frontend/hooks/use-fetch";
 import { Event, ViewType } from "./types";
-import { fetchCalendarEvents } from "./calendarUtils";
+import { fetchCalendarEvents } from "./calendar.utils";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 interface CalendarContextType {

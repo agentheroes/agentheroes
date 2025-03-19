@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { SocialMedia } from "@frontend/components/calendar/SocialMediaContext";
+import { SocialMedia } from "@frontend/components/calendar/social.media.context";
 import dayjs from "dayjs";
 import { PostDialog } from "@frontend/components/post/post-dialog";
 import { useDrag } from "react-dnd";

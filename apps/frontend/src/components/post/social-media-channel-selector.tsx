@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { SocialMedia, useSocialMedia } from '../calendar/SocialMediaContext';
+import { SocialMedia, useSocialMedia } from '../calendar/social.media.context';
 import { SelectableChannelItem } from './selectable-channel-item';
 import { Alert, AlertDescription } from "@frontend/components/ui/alert";
 import { AlertCircle } from "lucide-react";

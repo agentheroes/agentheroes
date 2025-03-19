@@ -13,6 +13,8 @@ import { v4 as uuidv4 } from "uuid";
 
 dayjs.extend(utc);
 
+type GroupId = string;
+
 @Injectable()
 export class SocialRepository {
   constructor(
@@ -146,9 +148,11 @@ export class SocialRepository {
     })
   }
 
-  async savePost(orgId: string, posts: PostCreateDto) {
+  async savePost(orgId: string, posts: PostCreateDto): Promise<GroupId[]> {
+    const groupList: GroupId[] = [];
     for (const item of posts.list) {
-      const group = uuidv4();
+      const group = posts.group || uuidv4();
+      groupList.push(group);
       for (const body of item.posts) {
         const uuid = uuidv4();
 
@@ -188,8 +192,6 @@ export class SocialRepository {
       }
     }
 
-    return {
-      saved: true,
-    };
+    return groupList;
   }
 }

@@ -3,8 +3,8 @@
 import { CalendarHeader } from "./calendar-header";
 import { CalendarSidebar } from "./calendar-sidebar";
 import { CalendarGrid } from "./calendar-grid";
-import { SocialMediaProvider, useSocialMedia } from "./SocialMediaContext";
-import { CalendarProvider, useCalendar } from "./CalendarContext";
+import { SocialMediaProvider, useSocialMedia } from "./social.media.context";
+import { CalendarProvider, useCalendar } from "./calendar.context";
 import { PostDialogProvider } from "@frontend/components/post";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";

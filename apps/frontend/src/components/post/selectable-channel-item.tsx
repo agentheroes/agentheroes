@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SocialMedia } from '../calendar/SocialMediaContext';
+import { SocialMedia } from '../calendar/social.media.context';
 
 interface SelectableChannelItemProps {
   channel: SocialMedia;

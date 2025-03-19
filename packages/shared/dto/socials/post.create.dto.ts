@@ -45,6 +45,10 @@ export class PostCreateDto {
   @IsNotEmpty()
   date: string; // ISO date in YYYY-MM-DD format
 
+  @IsString()
+  @IsOptional()
+  group: string;
+
   @IsEnum(["schedule", "draft", "now"])
   @IsNotEmpty()
   type: "schedule" | "draft" | "now";

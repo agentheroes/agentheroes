@@ -3,11 +3,11 @@ import dayjs from "dayjs";
 import { Button } from "@frontend/components/ui/button";
 import { usePostDialog } from "@frontend/components/post";
 import { CalendarEvent } from "@frontend/components/calendar/calendar-event";
-import { useCalendar } from "@frontend/components/calendar/CalendarContext";
+import { useCalendar } from "@frontend/components/calendar/calendar.context";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import {useSocialMedia} from "@frontend/components/calendar/SocialMediaContext";
+import {useSocialMedia} from "@frontend/components/calendar/social.media.context";
 import {useDrop} from "react-dnd";
 import {clsx} from "clsx";
 

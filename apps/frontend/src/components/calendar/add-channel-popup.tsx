@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useFetch } from "@frontend/hooks/use-fetch";
-import { useSocialMedia } from "./SocialMediaContext";
+import { useSocialMedia } from "./social.media.context";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import dayjs from "dayjs";

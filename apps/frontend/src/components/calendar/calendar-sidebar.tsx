@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChannelItem } from './channel-item';
-import { useSocialMedia } from './SocialMediaContext';
+import { useSocialMedia } from './social.media.context';
 import { AddChannelPopup } from './add-channel-popup';
 
 export function CalendarSidebar() {
