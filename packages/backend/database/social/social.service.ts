@@ -46,11 +46,13 @@ export class SocialService {
     return this._socialRepository.saveSocials(body);
   }
 
-  async deletePost(group: string) {
+  // delete only the post from the queue (not from db)
+  private async deletePost(group: string) {
     await this._workerServiceProducer.delete("post", group);
   }
 
-  async schedulePost(group: string, date: string) {
+  // Schedule post only at the queue level (not from db)
+  private async schedulePost(group: string, date: string) {
     const delay = dayjs.utc(date).diff(dayjs(), "millisecond");
     this._workerServiceProducer.emit("post", {
       id: group,
@@ -97,5 +99,11 @@ export class SocialService {
     await this._socialRepository.changePostDate(orgId, group, date);
     await this.deletePost(group);
     await this.schedulePost(group, date);
+  }
+
+  async deletePostsByGroup(orgId: string, group: string) {
+    await this._socialRepository.deletePostsByGroup(orgId, group);
+    await this.deletePost(group);
+    return { success: true };
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { SchedulerService } from "@packages/backend/scheduler/scheduler.service";
 import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.request";
 import { Organization } from "@prisma/client";
@@ -65,6 +65,17 @@ export class SocialController {
       organization.id,
       group,
       body.date,
+    );
+  }
+
+  @Delete("/calendar/:group")
+  async deletePostsByGroup(
+    @GetOrganizationFromRequest() organization: Organization,
+    @Param("group") group: string,
+  ) {
+    return this._socialService.deletePostsByGroup(
+      organization.id,
+      group,
     );
   }
 

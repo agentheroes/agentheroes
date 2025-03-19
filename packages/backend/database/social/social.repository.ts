@@ -148,6 +148,18 @@ export class SocialRepository {
     })
   }
 
+  async deletePostsByGroup(orgId: string, group: string) {
+    return this._posts.model.posts.updateMany({
+      where: {
+        organizationId: orgId,
+        group
+      },
+      data: {
+        deletedAt: new Date()
+      }
+    });
+  }
+
   async savePost(orgId: string, posts: PostCreateDto): Promise<GroupId[]> {
     const groupList: GroupId[] = [];
     for (const item of posts.list) {

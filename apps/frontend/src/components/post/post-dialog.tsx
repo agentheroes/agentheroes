@@ -75,6 +75,8 @@ function PostDialogContent({
   const [postType, setPostType] = useState<"schedule" | "draft" | "now">("schedule");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const { socials } = useSocialMedia();
   const { refreshEvents } = useCalendar();
   const { toast } = useToast();
@@ -429,6 +431,48 @@ function PostDialogContent({
     }
   };
 
+  const handleDeletePostGroup = async () => {
+    if (!groupId) return;
+    
+    try {
+      setIsDeleting(true);
+      
+      const response = await fetch(`/socials/calendar/${groupId}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      // Refresh the calendar events to update the UI
+      try {
+        await refreshEvents();
+        console.log("Calendar events refreshed successfully after deletion");
+      } catch (refreshError) {
+        console.error("Failed to refresh calendar events after deletion:", refreshError);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Post deleted successfully"
+      });
+      
+      // Close dialogs
+      setShowDeleteConfirmation(false);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const isFormValid =
     (globalPosts.some((post) => post.text.trim().length > 0) ||
       customChannelContents.some((content) =>
@@ -437,219 +481,260 @@ function PostDialogContent({
     selectedChannels.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Post" : "Add New Post"}</DialogTitle>
-          <DialogDescription>
-            {date
-              ? `${isEditing ? "Edit" : "Create"} a post for ${date.toLocaleString()}`
-              : `${isEditing ? "Edit" : "Create"} a new post`}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Edit Post" : "Add New Post"}</DialogTitle>
+            <DialogDescription>
+              {date
+                ? `${isEditing ? "Edit" : "Create"} a post for ${date.toLocaleString()}`
+                : `${isEditing ? "Edit" : "Create"} a new post`}
+            </DialogDescription>
+          </DialogHeader>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            <span className="ml-3">Loading post data...</span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left column - Post form */}
-            <div className="flex flex-col gap-4">
-              {/* Social Media Channel Selector - disabled in edit mode */}
-              {isEditing ? (
-                <SelectableChannelItem
-                  isSelected={true}
-                  channel={socials.find(p => p.id === channelId)!}
-                  onToggle={() => {}}
-                />
-              ) : (
-                <SocialMediaChannelSelector
-                  selectedChannels={selectedChannels}
-                  onChange={setSelectedChannels}
-                />
-              )}
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              <span className="ml-3">Loading post data...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left column - Post form */}
+              <div className="flex flex-col gap-4">
+                {/* Social Media Channel Selector - disabled in edit mode */}
+                {isEditing ? (
+                  <SelectableChannelItem
+                    isSelected={true}
+                    channel={socials.find(p => p.id === channelId)!}
+                    onToggle={() => {}}
+                  />
+                ) : (
+                  <SocialMediaChannelSelector
+                    selectedChannels={selectedChannels}
+                    onChange={setSelectedChannels}
+                  />
+                )}
 
-              {/* Post Type Selector */}
-              <div className="mb-4">
-                <Label className="text-sm font-medium mb-2 block">
-                  Post Type
-                </Label>
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="schedule"
-                      name="postType"
-                      value="schedule"
-                      checked={postType === "schedule"}
-                      onChange={() => setPostType("schedule")}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="schedule">Schedule</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="draft"
-                      name="postType"
-                      value="draft"
-                      checked={postType === "draft"}
-                      onChange={() => setPostType("draft")}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="draft">Draft</Label>
+                {/* Post Type Selector */}
+                <div className="mb-4">
+                  <Label className="text-sm font-medium mb-2 block">
+                    Post Type
+                  </Label>
+                  <div className="flex gap-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="schedule"
+                        name="postType"
+                        value="schedule"
+                        checked={postType === "schedule"}
+                        onChange={() => setPostType("schedule")}
+                        className="h-4 w-4"
+                      />
+                      <Label htmlFor="schedule">Schedule</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="draft"
+                        name="postType"
+                        value="draft"
+                        checked={postType === "draft"}
+                        onChange={() => setPostType("draft")}
+                        className="h-4 w-4"
+                      />
+                      <Label htmlFor="draft">Draft</Label>
+                    </div>
                   </div>
                 </div>
+
+                {/* Display channel-specific editor or global editor */}
+                {editingCustomChannel ? (
+                  <CustomPostEditor
+                    channelId={editingCustomChannel}
+                    posts={getPostsForChannel(editingCustomChannel)}
+                    onChange={handleCustomContentChange}
+                    onBack={() => setEditingCustomChannel(null)}
+                    socials={socials}
+                  />
+                ) : (
+                  <div className="grid gap-4">
+                    <label className="text-sm font-medium">
+                      Post Content {!isEditing && "(All Channels)"}
+                    </label>
+
+                    {/* Multiple Post Textareas */}
+                    <div className="space-y-3">
+                      {globalPosts.map((post, index) => (
+                        <PostTextArea
+                          key={post.id}
+                          post={post}
+                          onChange={handlePostChange}
+                          onMoveUp={() => handleMovePost(index, "up")}
+                          onMoveDown={() => handleMovePost(index, "down")}
+                          onDelete={() => handleDeletePost(index)}
+                          canMoveUp={index > 0}
+                          canMoveDown={index < globalPosts.length - 1}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Add Post Button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddPost}
+                      className="flex items-center gap-1 mr-auto"
+                    >
+                      <Plus className="h-4 w-4" /> Add Another Post
+                    </Button>
+                  </div>
+                )}
               </div>
 
-              {/* Display channel-specific editor or global editor */}
-              {editingCustomChannel ? (
-                <CustomPostEditor
-                  channelId={editingCustomChannel}
-                  posts={getPostsForChannel(editingCustomChannel)}
-                  onChange={handleCustomContentChange}
-                  onBack={() => setEditingCustomChannel(null)}
-                  socials={socials}
-                />
-              ) : (
-                <div className="grid gap-4">
-                  <label className="text-sm font-medium">
-                    Post Content {!isEditing && "(All Channels)"}
-                  </label>
+              {/* Right column - Preview */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Preview</label>
 
-                  {/* Multiple Post Textareas */}
-                  <div className="space-y-3">
-                    {globalPosts.map((post, index) => (
-                      <PostTextArea
-                        key={post.id}
-                        post={post}
-                        onChange={handlePostChange}
-                        onMoveUp={() => handleMovePost(index, "up")}
-                        onMoveDown={() => handleMovePost(index, "down")}
-                        onDelete={() => handleDeletePost(index)}
-                        canMoveUp={index > 0}
-                        canMoveDown={index < globalPosts.length - 1}
-                      />
-                    ))}
+                {selectedChannels.length > 0 ? (
+                  <div className="grid gap-4">
+                    <Tabs
+                      value={activePreviewTab || selectedChannels[0]}
+                      onValueChange={setActivePreviewTab}
+                    >
+                      <TabsList className="mb-4">
+                        {selectedChannels.map((channelId) => {
+                          const social = socials.find((s) => s.id === channelId);
+                          const hasCustom = hasCustomContent(channelId);
+
+                          return (
+                            <TabsTrigger
+                              value={channelId}
+                              key={channelId}
+                              className="flex items-center gap-2"
+                            >
+                              {social?.profilePic && (
+                                <img
+                                  src={social.profilePic}
+                                  alt={social.name}
+                                  className="w-4 h-4"
+                                />
+                              )}
+                              {social?.name}
+                              {hasCustom && (
+                                <span
+                                  className="h-1.5 w-1.5 bg-primary rounded-full"
+                                  title="Has custom content"
+                                />
+                              )}
+                            </TabsTrigger>
+                          );
+                        })}
+                      </TabsList>
+
+                      {selectedChannels.map((channelId) => (
+                        <TabsContent value={channelId} key={channelId}>
+                          <PostPreview
+                            posts={getPostsForChannel(channelId)}
+                            channels={selectedChannels}
+                            activeTab={channelId}
+                            onEditCustom={handleEditCustom}
+                            socials={socials}
+                          />
+                        </TabsContent>
+                      ))}
+                    </Tabs>
                   </div>
+                ) : (
+                  <div className="border rounded-md p-6 flex flex-col items-center justify-center h-[350px] bg-muted/20">
+                    <p className="text-muted-foreground text-center">
+                      Select at least one social media channel to see a preview of
+                      your post
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-                  {/* Add Post Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddPost}
-                    className="flex items-center gap-1 mr-auto"
-                  >
-                    <Plus className="h-4 w-4" /> Add Another Post
-                  </Button>
-                </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center w-full">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              {isEditing && groupId && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setShowDeleteConfirmation(true)}
+                  disabled={isDeleting || isLoading}
+                >
+                  Delete Post
+                </Button>
               )}
             </div>
-
-            {/* Right column - Preview */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">Preview</label>
-
-              {selectedChannels.length > 0 ? (
-                <div className="grid gap-4">
-                  <Tabs
-                    value={activePreviewTab || selectedChannels[0]}
-                    onValueChange={setActivePreviewTab}
-                  >
-                    <TabsList className="mb-4">
-                      {selectedChannels.map((channelId) => {
-                        const social = socials.find((s) => s.id === channelId);
-                        const hasCustom = hasCustomContent(channelId);
-
-                        return (
-                          <TabsTrigger
-                            value={channelId}
-                            key={channelId}
-                            className="flex items-center gap-2"
-                          >
-                            {social?.profilePic && (
-                              <img
-                                src={social.profilePic}
-                                alt={social.name}
-                                className="w-4 h-4"
-                              />
-                            )}
-                            {social?.name}
-                            {hasCustom && (
-                              <span
-                                className="h-1.5 w-1.5 bg-primary rounded-full"
-                                title="Has custom content"
-                              />
-                            )}
-                          </TabsTrigger>
-                        );
-                      })}
-                    </TabsList>
-
-                    {selectedChannels.map((channelId) => (
-                      <TabsContent value={channelId} key={channelId}>
-                        <PostPreview
-                          posts={getPostsForChannel(channelId)}
-                          channels={selectedChannels}
-                          activeTab={channelId}
-                          onEditCustom={handleEditCustom}
-                          socials={socials}
-                        />
-                      </TabsContent>
-                    ))}
-                  </Tabs>
-                </div>
-              ) : (
-                <div className="border rounded-md p-6 flex flex-col items-center justify-center h-[350px] bg-muted/20">
-                  <p className="text-muted-foreground text-center">
-                    Select at least one social media channel to see a preview of
-                    your post
-                  </p>
-                </div>
-              )}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handlePostNow}
+                disabled={!isFormValid || isSubmitting || isLoading || isDeleting}
+              >
+                {isSubmitting ? "Posting..." : "Post Now"}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!isFormValid || isSubmitting || isLoading || isDeleting}
+              >
+                {isSubmitting
+                  ? isEditing
+                    ? "Updating..."
+                    : "Creating..."
+                  : isEditing
+                    ? "Update Post"
+                    : "Create Post"}
+              </Button>
             </div>
-          </div>
-        )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center w-full">
-          <div className="flex gap-2">
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Post</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this post? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-between">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setShowDeleteConfirmation(false)}
             >
               Cancel
             </Button>
-          </div>
-          <div className="flex gap-2">
             <Button
               type="button"
-              variant="default"
-              onClick={handlePostNow}
-              disabled={!isFormValid || isSubmitting || isLoading}
+              variant="destructive"
+              onClick={handleDeletePostGroup}
+              disabled={isDeleting}
             >
-              {isSubmitting ? "Posting..." : "Post Now"}
+              {isDeleting ? "Deleting..." : "Delete Post"}
             </Button>
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!isFormValid || isSubmitting || isLoading}
-            >
-              {isSubmitting
-                ? isEditing
-                  ? "Updating..."
-                  : "Creating..."
-                : isEditing
-                  ? "Update Post"
-                  : "Create Post"}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
