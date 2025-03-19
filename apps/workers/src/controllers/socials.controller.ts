@@ -1,13 +1,13 @@
 import { Controller } from "@nestjs/common";
 import { EventPattern, Transport } from "@nestjs/microservices";
-import {SocialService} from "@packages/backend/database/social/social.service";
+import { SchedulerService } from "@packages/backend/scheduler/scheduler.service";
 
 @Controller()
 export class SocialsController {
-    constructor(private _socialsService: SocialService) {}
+  constructor(private _schedulerService: SchedulerService) {}
 
-    @EventPattern("post", Transport.REDIS)
-    async train(data: { id: string }) {
-        // return this._socialsService.post(data.id);
-    }
+  @EventPattern("post", Transport.REDIS)
+  async train(data: { id: string }) {
+    return this._schedulerService.post(data.id);
+  }
 }

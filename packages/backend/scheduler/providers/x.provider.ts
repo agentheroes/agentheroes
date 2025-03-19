@@ -13,7 +13,7 @@ export class X implements ProviderInterface {
   name = 'X (Twitter)';
   selectionRequired = false;
   parseError(err: string) {
-    return "valid" as "valid";
+    return {type: "refresh_token" as "refresh_token"};
   }
 
   mapRequest(input: any) {
@@ -156,7 +156,7 @@ export class X implements ProviderInterface {
       {} as Record<string, string[]>,
     );
 
-    const ids: string[] = [];
+    const ids: { internalId: string; url: string }[] = [];
     for (const post of postDetails) {
       const media_ids = (uploadAll[post.id] || []).filter((f) => f);
 
@@ -169,7 +169,7 @@ export class X implements ProviderInterface {
           : {}),
       });
 
-      ids.push(data.id);
+      ids.push({internalId: data.id, url: `https://x.com/${username}/status/${data.id}`});
     }
 
     return ids;

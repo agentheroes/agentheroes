@@ -16,15 +16,23 @@ export interface Post {
   media: string[];
 }
 
-type PostId = String[];
-type Err = "valid" | "show_user" | "save_to_db";
+type PostResponse = { internalId: string; url: string }[];
+
+type Err =
+  | { type: "refresh_token" }
+  | { type: "show_user"; message: string }
+  | { type: "save_to_db" };
 export interface ProviderInterface {
   identifier: string;
   name: string;
   selectionRequired: boolean;
   test(privateKey: string, publicKey: string): Promise<boolean>;
-  mapRequest?: (input: any) => { state: string; code: string; refresh?: string };
-  parseError: (error: string) => Err;
+  mapRequest?: (input: any) => {
+    state: string;
+    code: string;
+    refresh?: string;
+  };
+  parseError: (error: any) => Err;
   provider(privateKey: string, publicKey: string): any;
   link(
     url: string,
@@ -43,5 +51,5 @@ export interface ProviderInterface {
     posts: Post[],
     privateKey: string,
     publicKey: string,
-  ): Promise<PostId>;
+  ): Promise<PostResponse>;
 }

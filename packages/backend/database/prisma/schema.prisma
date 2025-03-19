@@ -136,6 +136,9 @@ model Posts {
   group String
   type String
   order Int
+  status         PostStatus   @default(PENDING)
+  error          String?
+  internalId     String?
   date           DateTime
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -185,4 +188,10 @@ enum Status {
   IN_PROGRESS
   COMPLETED
   FAILED
+}
+
+enum PostStatus {
+  PENDING
+  POSTED
+  ERROR
 }

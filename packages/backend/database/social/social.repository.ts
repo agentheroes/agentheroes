@@ -10,6 +10,7 @@ import {
   PostCreateDto,
 } from "@packages/shared/dto/socials/post.create.dto";
 import { v4 as uuidv4 } from "uuid";
+import {SavePostDetails} from "@packages/backend/database/social/social.service";
 
 dayjs.extend(utc);
 
@@ -160,6 +161,17 @@ export class SocialRepository {
     });
   }
 
+  async getPostsByGroup(group: string) {
+    return this._posts.model.posts.findMany({
+      where: {
+        group
+      },
+      include: {
+        channel: true
+      }
+    })
+  }
+
   async savePost(orgId: string, posts: PostCreateDto): Promise<GroupId[]> {
     const groupList: GroupId[] = [];
     for (const item of posts.list) {
@@ -205,5 +217,20 @@ export class SocialRepository {
     }
 
     return groupList;
+  }
+
+  async updatePostStatuses(params: SavePostDetails[]) {
+    for (const param of params) {
+      await this._posts.model.posts.update({
+        where: {
+          id: param.id
+        },
+        data: {
+          status: param.status,
+          internalId: param.internalId,
+          error: param.error,
+        }
+      })
+    }
   }
 }

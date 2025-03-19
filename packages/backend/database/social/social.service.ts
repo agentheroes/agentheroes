@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { SocialRepository } from "@packages/backend/database/social/social.repository";
-import { Channels } from "@prisma/client";
+import { Channels, PostStatus } from "@prisma/client";
 import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
 import { EncryptionService } from "@packages/backend/encryption/encryption.service";
 import { CheckSocialsList } from "@packages/shared/dto/socials.dto";
@@ -8,6 +8,13 @@ import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
 import { PostCreateDto } from "@packages/shared/dto/socials/post.create.dto";
 import { BullMqClient } from "@packages/backend/bull-mq-transport-new/client";
 import dayjs from "dayjs";
+
+export interface SavePostDetails {
+  id: string;
+  internalId?: string;
+  error?: string;
+  status: PostStatus;
+}
 
 @Injectable()
 export class SocialService {
@@ -105,5 +112,13 @@ export class SocialService {
     await this._socialRepository.deletePostsByGroup(orgId, group);
     await this.deletePost(group);
     return { success: true };
+  }
+
+  async getPostsByGroup(group: string) {
+    return this._socialRepository.getPostsByGroup(group);
+  }
+
+  async updatePostStatuses(params: SavePostDetails[]) {
+    return this._socialRepository.updatePostStatuses(params);
   }
 }

@@ -34,6 +34,7 @@ import {
 } from "./custom-post-editor";
 import { PostPreview } from "./post-preview";
 import { SelectableChannelItem } from "@frontend/components/post/selectable-channel-item";
+import { DatePicker } from "@frontend/components/post/date-picker";
 
 dayjs.extend(utc);
 
@@ -61,6 +62,7 @@ function PostDialogContent({
   groupId,
   channelId,
 }: PostDialogProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(date);
   const [globalPosts, setGlobalPosts] = useState<PostContent[]>([
     { id: crypto.randomUUID(), text: "", media: [] },
   ]);
@@ -81,6 +83,11 @@ function PostDialogContent({
   const { refreshEvents } = useCalendar();
   const { toast } = useToast();
   const fetch = useFetch();
+
+  // Update selectedDate when the date prop changes
+  useEffect(() => {
+    setSelectedDate(date);
+  }, [date]);
 
   // Fetch post data when editing
   useEffect(() => {
@@ -237,7 +244,7 @@ function PostDialogContent({
     try {
       setIsSubmitting(true);
 
-      // Format the data according to the required structure
+      // Use the selectedDate from our state instead of the date prop
       const formattedData: {
         date: string;
         type: "schedule" | "draft" | "now";
@@ -252,7 +259,7 @@ function PostDialogContent({
         }[];
         group?: string; // Add optional group property for editing
       } = {
-        date: dayjs(date).utc().format("YYYY-MM-DDTHH:mm:ss"),
+        date: dayjs(selectedDate).utc().format("YYYY-MM-DDTHH:mm:ss"),
         type: postType,
         list: selectedChannels
           .map((channelId) => {
@@ -355,7 +362,7 @@ function PostDialogContent({
         }[];
         group?: string;
       } = {
-        date: dayjs().utc().format("YYYY-MM-DDTHH:mm:ss"), // Current date/time
+        date: dayjs().utc().format("YYYY-MM-DDTHH:mm:ss"),
         type: "schedule",
         list: selectedChannels
           .map((channelId) => {
@@ -487,8 +494,8 @@ function PostDialogContent({
           <DialogHeader>
             <DialogTitle>{isEditing ? "Edit Post" : "Add New Post"}</DialogTitle>
             <DialogDescription>
-              {date
-                ? `${isEditing ? "Edit" : "Create"} a post for ${date.toLocaleString()}`
+              {selectedDate
+                ? `${isEditing ? "Edit" : "Create"} a post for ${selectedDate.toLocaleString()}`
                 : `${isEditing ? "Edit" : "Create"} a new post`}
             </DialogDescription>
           </DialogHeader>
@@ -515,6 +522,18 @@ function PostDialogContent({
                     onChange={setSelectedChannels}
                   />
                 )}
+
+                {/* Date Picker */}
+                <div className="mb-4">
+                  <Label className="text-sm font-medium mb-2 block">
+                    Schedule Date & Time
+                  </Label>
+                  <DatePicker 
+                    selectedDate={selectedDate} 
+                    onChange={setSelectedDate}
+                    minDate={new Date()} // Prevent selecting dates in the past
+                  />
+                </div>
 
                 {/* Post Type Selector */}
                 <div className="mb-4">

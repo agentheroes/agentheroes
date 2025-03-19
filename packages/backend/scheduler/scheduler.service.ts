@@ -73,7 +73,7 @@ export class SchedulerService {
       const newQuery = provider?.mapRequest?.(query) || query;
       const getConnection = await ioRedis.get(`integration:${newQuery.state}`);
       if (!getConnection) return {};
-      // await ioRedis.del(`integration:${newQuery.state}`);
+      await ioRedis.del(`integration:${newQuery.state}`);
       const parsedConnection = JSON.parse(getConnection);
 
       return {
@@ -90,7 +90,7 @@ export class SchedulerService {
       const provider = SchedulerList.find(
         (p) => p.identifier === parsedConnection.identifier,
       );
-      // await ioRedis.del(`integration:${parsedConnection.state}`);
+      await ioRedis.del(`integration:${parsedConnection.state}`);
 
       return {
         provider,
@@ -132,5 +132,55 @@ export class SchedulerService {
     });
 
     return parsedConnection.redirectTo;
+  }
+
+  async post(groupId: string) {
+    const post = await this._socialService.getPostsByGroup(groupId);
+    if (post.length == 0) {
+      return;
+    }
+
+    const keys = await this.getKeys(post[0].channel.identifier);
+    if (!keys) {
+      return;
+    }
+
+    const provider = SchedulerList.find(
+      (p) => p.identifier === post[0].channel.identifier,
+    );
+
+    if (!provider) {
+      return;
+    }
+
+    try {
+      const ids = await provider.post(
+        post[0].channel,
+        post.map((p) => ({
+          id: p.id,
+          text: p.content,
+          media: JSON.parse(p.media),
+        })),
+        keys.privateKey,
+        keys.publicKey,
+      );
+
+      return this._socialService.updatePostStatuses(
+        ids.map((p, index) => ({
+          status: "POSTED",
+          internalId: p.internalId,
+          id: post[index].id,
+        })),
+      );
+    } catch (err) {
+      const load = provider.parseError(err);
+      return this._socialService.updatePostStatuses(
+        post.map((p, index) => ({
+          status: "ERROR",
+          id: p.id,
+          error: JSON.stringify(err),
+        })),
+      );
+    }
   }
 }
