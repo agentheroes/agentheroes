@@ -11,6 +11,8 @@ import { makeId } from "@packages/backend/encryption/make.id";
 import { NodeType } from "@packages/shared/agents/agent.flow";
 import { ArcherContainer, ArcherElement } from "react-archer";
 import { createSelector } from "@reduxjs/toolkit";
+import { NodeCard } from "./node-card.component";
+import { NodeButton } from "./node-button.component";
 
 // Selectors
 const selectTree = (state: { tree: TreeState[] }) => state.tree;
@@ -50,37 +52,34 @@ const NodeComponent: FC<{
     !isRoot || (isRoot && node.type === NodeType.TRIGGER);
 
   return (
-    <div className="flex flex-col items-center gap-[50px]">
+    <div className="flex flex-col items-center gap-[60px]">
       <ArcherElement
         id={node.id}
         relations={childNodes.map((p) => ({
           targetId: p.id,
           targetAnchor: "top",
           sourceAnchor: "bottom",
+          style: { strokeWidth: 2, strokeDasharray: "5,5" },
         }))}
       >
-        <div
-          className={`min-w-[200px] rounded-md p-4 bg-white text-black border border-gray-300 shadow-sm ${
-            isRoot ? "bg-gray-100" : ""
-          }`}
-        >
-          {shouldShowAddButton && (
-            <div className="mt-4">
-              <button
+        <div>
+          <NodeCard node={node} isRoot={isRoot}>
+            {shouldShowAddButton && (
+              <NodeButton
                 onClick={addChildNode}
-                className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50"
+                variant={isRoot ? "primary" : "secondary"}
               >
                 Add Node
-              </button>
-            </div>
-          )}
+              </NodeButton>
+            )}
+          </NodeCard>
         </div>
       </ArcherElement>
 
       {/* Child Content */}
       {childNodes.length > 0 && (
         <div className="flex justify-center mt-2">
-          <div className="flex flex-row space-x-12">
+          <div className="flex flex-row space-x-16">
             {childNodes.map((childNode) => (
               <div key={childNode.id} className="flex flex-col items-center">
                 <NodeComponent node={childNode} />
@@ -117,7 +116,7 @@ export const RenderStepComponent: FC = () => {
       <div>
         <div className="flex flex-col mt-4">
           <Provider store={store}>
-            <ArcherContainer strokeColor="#FD7302">
+            <ArcherContainer strokeColor="#6366F1" strokeWidth={2} offset={10}>
               <RenderTree />
             </ArcherContainer>
           </Provider>
