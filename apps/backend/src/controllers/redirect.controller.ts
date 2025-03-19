@@ -15,6 +15,7 @@ export class RedirectController {
       };
     }
     catch (err) {
+      console.log(err);
       return {
         url: '/calendar/?err=Could not add channel'
       }

@@ -40,10 +40,11 @@ export function AddChannelPopup({ isOpen, onClose }: AddChannelPopupProps) {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const successParam = urlParams.get("social_connect_success");
+      const refreshParam = urlParams.get("social_connect_refresh");
       const errorParam = urlParams.get("social_connect_error");
 
-      if (successParam === "true") {
-        // If we have a success parameter, refresh socials
+      if (successParam === "true" || refreshParam === "true") {
+        // If we have a success or refresh parameter, refresh socials
         refreshSocials();
 
         // Clean up URL parameters

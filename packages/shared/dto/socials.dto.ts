@@ -2,9 +2,9 @@ import {
   IsArray,
   IsDefined,
   IsIn,
-  IsNumberString,
+  IsNumberString, IsOptional,
   IsString,
-  IsUrl,
+  IsUrl, ValidateIf,
   ValidateNested,
 } from "class-validator";
 import { SchedulerList } from "@packages/backend/scheduler/scheduler.list";
@@ -14,6 +14,18 @@ export class SocialLinkDTO {
   @IsString()
   @IsDefined()
   identifier: string;
+
+  @IsIn(['true'])
+  @IsOptional()
+  refresh: string;
+
+  @IsString()
+  @ValidateIf(p => p.refresh === "true")
+  rootInternalId: string;
+
+  @IsString()
+  @ValidateIf(p => p.refresh === "true")
+  internalId: string;
 
   @IsUrl({
     require_tld: false,

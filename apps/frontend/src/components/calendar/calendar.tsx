@@ -8,6 +8,7 @@ import { CalendarProvider, useCalendar } from "./calendar.context";
 import { PostDialogProvider } from "@frontend/components/post";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
+import { RefreshTokenWarning } from "./refresh-token-warning";
 
 // Create a separate CalendarContent component to use the contexts
 function CalendarContent() {
@@ -30,6 +31,7 @@ function CalendarContent() {
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
       <h2 className="text-2xl font-bold mb-6">Calendar</h2>
+      <RefreshTokenWarning />
       <div className="flex gap-[20px]">
         <CalendarSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">

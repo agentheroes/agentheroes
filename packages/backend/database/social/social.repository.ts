@@ -6,11 +6,9 @@ import { EncryptionService } from "@packages/backend/encryption/encryption.servi
 import { CalendarPosts } from "@packages/shared/dto/socials/calendar.posts.dto";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import {
-  PostCreateDto,
-} from "@packages/shared/dto/socials/post.create.dto";
+import { PostCreateDto } from "@packages/shared/dto/socials/post.create.dto";
 import { v4 as uuidv4 } from "uuid";
-import {SavePostDetails} from "@packages/backend/database/social/social.service";
+import { SavePostDetails } from "@packages/backend/database/social/social.service";
 
 dayjs.extend(utc);
 
@@ -53,21 +51,30 @@ export class SocialRepository {
 
   save(
     org: string,
-    info: Omit<Channels, "createdAt" | "updatedAt" | "deletedAt" | "id">,
+    info: Omit<
+      Channels,
+      | "createdAt"
+      | "updatedAt"
+      | "deletedAt"
+      | "id"
+    >,
   ) {
+    const extraDetails = {
+      organizationId: org,
+      name: info.name,
+      username: info.username,
+      profilePic: info.profilePic,
+      currentInternalId: info.currentInternalId,
+      rootInternalId: info.rootInternalId,
+    };
+
     const details = {
       identifier: info.identifier,
       timezone: info.timezone,
-      username: info.username,
-      name: info.name,
       token: info.token,
       expiresIn: info.expiresIn,
-      profilePic: info.profilePic,
       refreshToken: info.refreshToken,
-      rootInternalId: info.rootInternalId,
-      currentInternalId: info.rootInternalId,
       selectionRequired: info.selectionRequired,
-      organizationId: info.organizationId,
       shouldRefresh: info.shouldRefresh,
     };
 
@@ -76,11 +83,12 @@ export class SocialRepository {
         organizationId_rootInternalId_currentInternalId: {
           organizationId: org,
           rootInternalId: info.rootInternalId,
-          currentInternalId: info.rootInternalId,
+          currentInternalId: info.currentInternalId,
         },
       },
       create: {
-        ...details,
+        ...(details as Channels),
+        ...extraDetails,
         createdAt: new Date(),
       },
       update: {
@@ -106,6 +114,8 @@ export class SocialRepository {
         profilePic: true,
         shouldRefresh: true,
         selectionRequired: true,
+        rootInternalId: true,
+        currentInternalId: true,
       },
     });
   }
@@ -116,8 +126,8 @@ export class SocialRepository {
         organizationId: orgId,
         order: 1,
         date: {
-          gte: dayjs.utc(body.startDate).startOf('day').toDate(),
-          lte: dayjs.utc(body.endDate).endOf('day').add(1, 'minute').toDate(),
+          gte: dayjs.utc(body.startDate).startOf("day").toDate(),
+          lte: dayjs.utc(body.endDate).endOf("day").add(1, "minute").toDate(),
         },
         deletedAt: null,
       },
@@ -125,53 +135,55 @@ export class SocialRepository {
   }
 
   async getAllPostsPerGroup(orgId: string, group: string) {
-    return (await this._posts.model.posts.findMany({
-      where: {
-        organizationId: orgId,
-        group
-      },
-      orderBy: {
-        order: 'asc'
-      }
-    })).map(p => ({
+    return (
+      await this._posts.model.posts.findMany({
+        where: {
+          organizationId: orgId,
+          group,
+        },
+        orderBy: {
+          order: "asc",
+        },
+      })
+    ).map((p) => ({
       ...p,
-      media: JSON.parse(p.media)
-    }))
+      media: JSON.parse(p.media),
+    }));
   }
 
   async changePostDate(orgId: string, group: string, date: string) {
     return this._posts.model.posts.updateMany({
       where: {
         organizationId: orgId,
-        group
+        group,
       },
       data: {
-        date
-      }
-    })
+        date,
+      },
+    });
   }
 
   async deletePostsByGroup(orgId: string, group: string) {
     return this._posts.model.posts.updateMany({
       where: {
         organizationId: orgId,
-        group
+        group,
       },
       data: {
-        deletedAt: new Date()
-      }
+        deletedAt: new Date(),
+      },
     });
   }
 
   async getPostsByGroup(group: string) {
     return this._posts.model.posts.findMany({
       where: {
-        group
+        group,
       },
       include: {
-        channel: true
-      }
-    })
+        channel: true,
+      },
+    });
   }
 
   async savePost(orgId: string, posts: PostCreateDto): Promise<GroupId[]> {
@@ -225,14 +237,14 @@ export class SocialRepository {
     for (const param of params) {
       await this._posts.model.posts.update({
         where: {
-          id: param.id
+          id: param.id,
         },
         data: {
           status: param.status,
           internalId: param.internalId,
           error: param.error,
-        }
-      })
+        },
+      });
     }
   }
 }

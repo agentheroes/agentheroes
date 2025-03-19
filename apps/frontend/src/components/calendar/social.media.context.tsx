@@ -6,8 +6,12 @@ import {useFetch} from "@frontend/hooks/use-fetch";
 export interface SocialMedia {
   id: string;
   identifier: string;
+  currentInternalId: string;
+  rootInternalId: string;
   name: string;
   profilePic: string;
+  shouldRefresh: boolean;
+  selectionRequired: boolean;
 }
 
 interface SocialMediaContextType {
@@ -49,7 +53,24 @@ export function SocialMediaProvider({ children }: SocialMediaProviderProps) {
       }
       
       const data = await response.json();
-      setSocials(data);
+      
+      // Debug log to ensure shouldRefresh values are maintained
+      console.log('Fetched social media channels:', data);
+      
+      // Make sure shouldRefresh is properly typed as a boolean
+      const typedData = data.map((social: any) => ({
+        ...social,
+        shouldRefresh: Boolean(social.shouldRefresh),
+        selectionRequired: Boolean(social.selectionRequired)
+      }));
+      
+      setSocials(typedData);
+      
+      // Log any channels that need refresh
+      const refreshNeeded = typedData.filter((social: SocialMedia) => social.shouldRefresh === true);
+      if (refreshNeeded.length > 0) {
+        console.log('Social media channels needing refresh:', refreshNeeded);
+      }
     } catch (err) {
       console.error('Error fetching social media channels:', err);
       setError('Failed to load social media channels. Please try again later.');
