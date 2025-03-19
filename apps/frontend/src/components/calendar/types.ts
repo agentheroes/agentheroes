@@ -12,6 +12,7 @@ export interface Event {
   id: string;
   title: string;
   date: string;
+  channel: string;
 }
 
 export interface CalendarHeaderProps {

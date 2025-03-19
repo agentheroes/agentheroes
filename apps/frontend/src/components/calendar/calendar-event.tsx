@@ -1,10 +1,12 @@
 'use client';
 
 import React, { CSSProperties } from 'react';
+import {SocialMedia} from "@frontend/components/calendar/SocialMediaContext";
 
 interface CalendarEventProps {
   title: string;
   time: string;
+  channel: SocialMedia;
 }
 
 export function CalendarEvent({ title, time }: CalendarEventProps) {

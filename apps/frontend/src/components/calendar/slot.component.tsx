@@ -7,6 +7,7 @@ import { useCalendar } from "@frontend/components/calendar/CalendarContext";
 import isBetween from "dayjs/plugin/isBetween";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import {useSocialMedia} from "@frontend/components/calendar/SocialMediaContext";
 
 // Extend dayjs with necessary plugins
 dayjs.extend(isBetween);
@@ -32,6 +33,7 @@ export const SlotComponent: FC<{
   view: "day" | "month" | "week";
 }> = (props) => {
   const calendar = useCalendar();
+  const social = useSocialMedia();
   const events = useMemo(() => {
     // Log current slot's date for debugging
     return calendar.events.filter((event) => {
@@ -41,13 +43,15 @@ export const SlotComponent: FC<{
       // Create a start and end range for this time slot
       const { slotStart, slotEnd } = calculateDates(props.view, props.date);
 
-      console.log(slotStart, slotEnd);
       // Check if the event falls within the current slot's time range
       const isInSlot = eventDate.isBetween(slotStart, slotEnd);
 
       return isInSlot;
-    });
-  }, [calendar.events, props.date, props.view]);
+    }).map(p => ({
+      ...p,
+      channel: social.socials.find(a => a.id === p.channel)
+    }))
+  }, [calendar.events, social, props.date, props.view]);
 
   return (
     <>
@@ -58,6 +62,7 @@ export const SlotComponent: FC<{
             <CalendarEvent
               key={event.id}
               title={event.title}
+              channel={event.channel}
               time={dayjs(event.date).format("HH:mm")}
             />
           );
