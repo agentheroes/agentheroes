@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Provider, useSelector } from "react-redux";
 import store, {
   TreeState,
@@ -13,6 +13,7 @@ import { ArcherContainer, ArcherElement } from "react-archer";
 import { createSelector } from "@reduxjs/toolkit";
 import { NodeCard } from "./node-card.component";
 import { NodeButton } from "./node-button.component";
+import { NodeSelectionDialog } from "./node-selection-dialog.component";
 
 // Selectors
 const selectTree = (state: { tree: TreeState[] }) => state.tree;
@@ -36,16 +37,26 @@ const NodeComponent: FC<{
   const dispatch = useAppDispatch();
   const selectChildNodes = makeSelectChildNodes();
   const childNodes = useSelector((state) => selectChildNodes(state, node.id));
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const addChildNode = () => {
+  const openNodeSelectionDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const closeNodeSelectionDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const handleNodeSelection = (nodeType: NodeType) => {
     dispatch(
       treeSlice.actions.addValue({
         id: makeId(10),
         parent: node.id,
-        type: node.type,
+        type: nodeType,
         data: {},
       }),
     );
+    closeNodeSelectionDialog();
   };
 
   const shouldShowAddButton =
@@ -66,7 +77,7 @@ const NodeComponent: FC<{
           <NodeCard node={node} isRoot={isRoot}>
             {shouldShowAddButton && (
               <NodeButton
-                onClick={addChildNode}
+                onClick={openNodeSelectionDialog}
                 variant={isRoot ? "primary" : "secondary"}
               >
                 Add Node
@@ -75,6 +86,14 @@ const NodeComponent: FC<{
           </NodeCard>
         </div>
       </ArcherElement>
+
+      {/* Node Selection Dialog */}
+      <NodeSelectionDialog
+        isOpen={isDialogOpen}
+        onClose={closeNodeSelectionDialog}
+        onSelectNode={handleNodeSelection}
+        currentNodeType={node.type}
+      />
 
       {/* Child Content */}
       {childNodes.length > 0 && (

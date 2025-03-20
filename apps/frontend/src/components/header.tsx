@@ -50,7 +50,7 @@ export function Header() {
           <Link
             href="/agents"
             className={`hover:bg-black border hover:border-[#333] rounded-[10px] px-[24px] py-[14px] flex items-center gap-2 text-sm font-medium ${
-              isActive("/news-feed")
+              isActive("/agents")
                 ? "text-white bg-black border border-[#333] font-[500]"
                 : "border-[#151515] text-[#7E7E81] hover:text-white"
             }`}
