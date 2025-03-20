@@ -1,13 +1,18 @@
 "use client";
 
-import { FC, useState } from "react";
-import { useAppDispatch } from "../store";
-import { treeSlice } from "../store";
+import { FC, useState, useEffect } from "react";
+import { useAppDispatch, useAppSelector, treeSlice, workflowSlice } from "../store";
 import { NodeButton } from "../node-button.component";
+
+// Import option components
+import { MCPService } from "./third-party-options/mcp-service.component";
+import { APIService } from "./third-party-options/api-service.component";
+import { CustomScript } from "./third-party-options/custom-script.component";
 
 interface ThirdPartyConfigProps {
   nodeId: string;
-  initialData: any;
+  nodePath?: string;
+  initialData?: any;
   onClose: () => void;
 }
 
@@ -15,32 +20,123 @@ type ServiceType = "mcp" | "api" | "custom";
 
 export const ThirdPartyConfig: FC<ThirdPartyConfigProps> = ({
   nodeId,
+  nodePath,
   initialData,
   onClose,
 }) => {
   const dispatch = useAppDispatch();
+  
+  // Get node data from Redux store
+  const node = useAppSelector((state) => 
+    state.tree.find(n => n.id === nodeId)
+  );
+  
+  // Get workflow path data if available
+  const pathData = nodePath 
+    ? useAppSelector((state) => state.workflow.pathData[nodePath] || {})
+    : {};
+  
+  // Merge initialData (for backward compatibility) with node inputs
+  const mergedInitialData = {
+    ...(initialData || {}),
+    ...(node?.inputs || {})
+  };
+  
   const [serviceType, setServiceType] = useState<ServiceType>(
-    initialData.serviceType || "mcp"
+    mergedInitialData.serviceType || "mcp"
   );
-  const [apiUrl, setApiUrl] = useState<string>(
-    initialData.apiUrl || "https://"
-  );
-  const [apiMethod, setApiMethod] = useState<string>(
-    initialData.apiMethod || "GET"
-  );
-  const [customScript, setCustomScript] = useState<string>(
-    initialData.customScript || ""
-  );
+  
+  const [serviceData, setServiceData] = useState<any>(mergedInitialData || {});
+  
+  // Check for prompt from upstream nodes
+  const upstreamPrompt = pathData.prompt as string;
+  
+  // Update the inputs in the store when our configuration changes
+  useEffect(() => {
+    // Save to node inputs
+    dispatch(treeSlice.actions.updateNodeInputs({ 
+      id: nodeId, 
+      inputs: { 
+        serviceType,
+        ...serviceData
+      } 
+    }));
+  }, [serviceData, serviceType, dispatch, nodeId]);
 
-  const handleSave = () => {
-    const data = {
-      serviceType,
-      ...(serviceType === "api" ? { apiUrl, apiMethod } : {}),
-      ...(serviceType === "custom" ? { customScript } : {}),
+  const handleServiceTypeChange = (type: ServiceType) => {
+    setServiceType(type);
+    
+    // Update the serviceType in the data
+    const updatedData = {
+      ...serviceData,
+      serviceType: type
     };
     
-    dispatch(treeSlice.actions.updateNodeData({ id: nodeId, data }));
+    setServiceData(updatedData);
+  };
+
+  const handleServiceDataChange = (data: any) => {
+    const updatedData = {
+      ...serviceData,
+      ...data
+    };
+    
+    setServiceData(updatedData);
+  };
+
+  const handleSave = () => {
+    // For backward compatibility, still update node.data
+    dispatch(treeSlice.actions.updateNodeData({ 
+      id: nodeId, 
+      data: { 
+        serviceType,
+        ...serviceData
+      } 
+    }));
+    
+    // Update node outputs
+    dispatch(treeSlice.actions.updateNodeOutputs({
+      id: nodeId,
+      outputs: {
+        serviceType,
+        ...serviceData,
+        // If this is an API service, include the response (mock for now)
+        ...(serviceType === "api" && { 
+          apiResponse: "Example API response data",
+          prompt: serviceData.prompt || upstreamPrompt || ""
+        })
+      }
+    }));
+    
     onClose();
+  };
+
+  // Render the appropriate service component based on the service type
+  const renderServiceOptions = () => {
+    // Pass upstream prompt data to the component if available
+    const dataWithUpstream = upstreamPrompt ? {
+      ...serviceData,
+      upstreamPrompt
+    } : serviceData;
+    
+    switch (serviceType) {
+      case "mcp":
+        return <MCPService initialData={dataWithUpstream} onDataChange={handleServiceDataChange} />;
+      case "api":
+        return <APIService 
+          initialData={dataWithUpstream} 
+          onDataChange={handleServiceDataChange} 
+          upstreamPrompt={upstreamPrompt}
+        />;
+      case "custom":
+        return <CustomScript 
+          initialData={dataWithUpstream} 
+          onDataChange={handleServiceDataChange}
+          upstreamPrompt={upstreamPrompt}
+        />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -54,7 +150,7 @@ export const ThirdPartyConfig: FC<ThirdPartyConfigProps> = ({
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
-            onClick={() => setServiceType("mcp")}
+            onClick={() => handleServiceTypeChange("mcp")}
             className={`px-4 py-2 text-sm border rounded-md ${
               serviceType === "mcp"
                 ? "bg-indigo-50 border-indigo-500 text-indigo-700"
@@ -65,7 +161,7 @@ export const ThirdPartyConfig: FC<ThirdPartyConfigProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setServiceType("api")}
+            onClick={() => handleServiceTypeChange("api")}
             className={`px-4 py-2 text-sm border rounded-md ${
               serviceType === "api"
                 ? "bg-indigo-50 border-indigo-500 text-indigo-700"
@@ -76,7 +172,7 @@ export const ThirdPartyConfig: FC<ThirdPartyConfigProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setServiceType("custom")}
+            onClick={() => handleServiceTypeChange("custom")}
             className={`px-4 py-2 text-sm border rounded-md ${
               serviceType === "custom"
                 ? "bg-indigo-50 border-indigo-500 text-indigo-700"
@@ -88,74 +184,10 @@ export const ThirdPartyConfig: FC<ThirdPartyConfigProps> = ({
         </div>
       </div>
       
-      {serviceType === "mcp" && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600">
-            MCP will be used for this node.
-          </p>
-        </div>
-      )}
-
-      {serviceType === "api" && (
-        <>
-          <div className="mb-4">
-            <label
-              htmlFor="apiUrl"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              API URL
-            </label>
-            <input
-              type="text"
-              id="apiUrl"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              placeholder="https://api.example.com"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              API Method
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {["GET", "POST", "PUT", "DELETE"].map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => setApiMethod(method)}
-                  className={`px-4 py-2 text-sm border rounded-md ${
-                    apiMethod === method
-                      ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                      : "border-gray-300 text-gray-700"
-                  }`}
-                >
-                  {method}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {serviceType === "custom" && (
-        <div className="mb-4">
-          <label
-            htmlFor="customScript"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Custom Script
-          </label>
-          <textarea
-            id="customScript"
-            value={customScript}
-            onChange={(e) => setCustomScript(e.target.value)}
-            rows={5}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder="// Write your custom script here"
-          />
-        </div>
-      )}
+      {/* Render service-specific options */}
+      <div className="mt-4">
+        {renderServiceOptions()}
+      </div>
       
       <div className="flex justify-end gap-2 mt-6">
         <NodeButton onClick={onClose} variant="ghost">

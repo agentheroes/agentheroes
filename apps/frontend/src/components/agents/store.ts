@@ -8,6 +8,14 @@ export interface TreeState {
   parent?: string;
   type: NodeType;
   data: any;
+  // Add inputs and outputs for the workflow
+  inputs?: Record<string, any>;
+  outputs?: Record<string, any>;
+}
+
+// Define a type for the entire workflow state
+export interface WorkflowState {
+  pathData: Record<string, any>;
 }
 
 const id = makeId(10);
@@ -17,8 +25,15 @@ const initialState: TreeState[] = [
     id,
     type: NodeType.TRIGGER,
     data: {},
+    inputs: {},
+    outputs: {},
   },
 ];
+
+// Initial workflow state
+const initialWorkflowState: WorkflowState = {
+  pathData: {},
+};
 
 export const treeSlice = createSlice({
   name: "tree",
@@ -26,10 +41,16 @@ export const treeSlice = createSlice({
   initialState,
   reducers: {
     addValue: (state, action: PayloadAction<TreeState>) => {
-      state.push(action.payload);
+      // Ensure inputs and outputs are initialized
+      const newNode = {
+        ...action.payload,
+        inputs: action.payload.inputs || {},
+        outputs: action.payload.outputs || {},
+      };
+      state.push(newNode);
     },
     removeNode: (state, action: PayloadAction<string>) => {
-      state = state.filter((f) => f.id !== action.payload);
+      return state.filter((f) => f.id !== action.payload);
     },
     updateNodeData: (state, action: PayloadAction<{ id: string; data: any }>) => {
       const { id, data } = action.payload;
@@ -38,12 +59,51 @@ export const treeSlice = createSlice({
         node.data = { ...node.data, ...data };
       }
     },
+    updateNodeInputs: (state, action: PayloadAction<{ id: string; inputs: Record<string, any> }>) => {
+      const { id, inputs } = action.payload;
+      const node = state.find(node => node.id === id);
+      if (node) {
+        node.inputs = { ...node.inputs, ...inputs };
+      }
+    },
+    updateNodeOutputs: (state, action: PayloadAction<{ id: string; outputs: Record<string, any> }>) => {
+      const { id, outputs } = action.payload;
+      const node = state.find(node => node.id === id);
+      if (node) {
+        node.outputs = { ...node.outputs, ...outputs };
+        
+        // Find child nodes and update their inputs
+        const childNodes = state.filter(n => n.parent === id);
+        for (const childNode of childNodes) {
+          if (childNode.inputs) {
+            childNode.inputs = { ...childNode.inputs, ...outputs };
+          }
+        }
+      }
+    },
+  },
+});
+
+// Create a workflow slice to manage the path data
+export const workflowSlice = createSlice({
+  name: "workflow",
+  initialState: initialWorkflowState,
+  reducers: {
+    updatePathData: (state, action: PayloadAction<{ nodeId: string; data: any }>) => {
+      const { nodeId, data } = action.payload;
+      state.pathData[nodeId] = { ...state.pathData[nodeId], ...data };
+    },
+    clearPathData: (state, action: PayloadAction<string>) => {
+      // Clear data for a specific node
+      delete state.pathData[action.payload];
+    },
   },
 });
 
 const store = configureStore({
   reducer: {
     tree: treeSlice.reducer,
+    workflow: workflowSlice.reducer,
   },
 });
 

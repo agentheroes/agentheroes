@@ -7,9 +7,15 @@ import { TreeState } from "./store";
 // Import configuration components
 import { TriggerConfig } from "./node-configs/trigger-config.component";
 import { ThirdPartyConfig } from "./node-configs/third-party-config.component";
-import { GenerateImageConfig } from "./node-configs/generate-image-config.component";
+import { GenerateImage } from "./node-configs/generate-image.component";
 import { GenerateVideoConfig } from "./node-configs/generate-video-config.component";
 import { PublishConfig } from "./node-configs/publish-config.component";
+
+// Helper function to build node path
+const buildNodePath = (node: TreeState): string => {
+  // Create a path based on node ID and parent ID if available
+  return node.parent ? `${node.parent}/${node.id}` : node.id;
+};
 
 interface NodeConfigFactoryProps {
   node: TreeState;
@@ -17,6 +23,9 @@ interface NodeConfigFactoryProps {
 }
 
 export const NodeConfigFactory: FC<NodeConfigFactoryProps> = ({ node, onClose }) => {
+  // Generate node path for use in workflow data
+  const nodePath = buildNodePath(node);
+
   // Render the appropriate configuration component based on the node type
   switch (node.type) {
     case NodeType.TRIGGER:
@@ -32,14 +41,15 @@ export const NodeConfigFactory: FC<NodeConfigFactoryProps> = ({ node, onClose })
         <ThirdPartyConfig
           nodeId={node.id}
           initialData={node.data}
+          nodePath={nodePath}
           onClose={onClose}
         />
       );
     case NodeType.GENERATE_IMAGE:
       return (
-        <GenerateImageConfig
+        <GenerateImage
           nodeId={node.id}
-          initialData={node.data}
+          nodePath={nodePath}
           onClose={onClose}
         />
       );

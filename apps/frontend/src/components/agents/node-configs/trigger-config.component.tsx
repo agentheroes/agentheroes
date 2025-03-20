@@ -5,6 +5,11 @@ import { useAppDispatch } from "../store";
 import { treeSlice } from "../store";
 import { NodeButton } from "../node-button.component";
 
+// Import option components
+import { ManualTrigger } from "./trigger-options/manual-trigger.component";
+import { ScheduledTrigger } from "./trigger-options/scheduled-trigger.component";
+import { WebhookTrigger } from "./trigger-options/webhook-trigger.component";
+
 interface TriggerConfigProps {
   nodeId: string;
   initialData: any;
@@ -25,15 +30,37 @@ export const TriggerConfig: FC<TriggerConfigProps> = ({
   const [schedule, setSchedule] = useState<string>(
     initialData.schedule || "0 0 * * *"
   );
+  const [webhookId, setWebhookId] = useState<string>(
+    initialData.webhookId || ""
+  );
 
   const handleSave = () => {
     const data = {
       triggerType,
       ...(triggerType === "scheduled" ? { schedule } : {}),
+      ...(triggerType === "webhook" ? { webhookId } : {}),
     };
     
     dispatch(treeSlice.actions.updateNodeData({ id: nodeId, data }));
     onClose();
+  };
+
+  const handleScheduleChange = (newSchedule: string) => {
+    setSchedule(newSchedule);
+  };
+
+  // Render the appropriate configuration component based on trigger type
+  const renderTriggerOptions = () => {
+    switch (triggerType) {
+      case "manual":
+        return <ManualTrigger />;
+      case "scheduled":
+        return <ScheduledTrigger schedule={schedule} onScheduleChange={handleScheduleChange} />;
+      case "webhook":
+        return <WebhookTrigger webhookId={webhookId} />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -81,35 +108,10 @@ export const TriggerConfig: FC<TriggerConfigProps> = ({
         </div>
       </div>
       
-      {triggerType === "scheduled" && (
-        <div className="mb-4">
-          <label
-            htmlFor="schedule"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Schedule (Cron Expression)
-          </label>
-          <input
-            type="text"
-            id="schedule"
-            value={schedule}
-            onChange={(e) => setSchedule(e.target.value)}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder="0 0 * * *"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Format: minute hour day-of-month month day-of-week
-          </p>
-        </div>
-      )}
-
-      {triggerType === "webhook" && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600">
-            Webhook URL will be generated after saving.
-          </p>
-        </div>
-      )}
+      {/* Render trigger-specific options */}
+      <div className="mt-4">
+        {renderTriggerOptions()}
+      </div>
       
       <div className="flex justify-end gap-2 mt-6">
         <NodeButton onClick={onClose} variant="ghost">

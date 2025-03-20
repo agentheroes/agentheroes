@@ -1,178 +1,181 @@
 "use client";
 
-import { FC, useState } from "react";
-import { useAppDispatch } from "../store";
-import { treeSlice } from "../store";
-import { NodeButton } from "../node-button.component";
+import { FC, useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { treeSlice, useAppDispatch, useAppSelector, RootState } from "../store";
+import { PromptInput } from "../shared/prompt-input.component";
 
-interface GenerateImageConfigProps {
+export interface GenerateImageConfigProps {
   nodeId: string;
-  initialData: any;
-  onClose: () => void;
+  nodePath: string;
 }
 
-type GeneratorType = "dall-e" | "midjourney" | "stable-diffusion";
-type ImageSize = "small" | "medium" | "large";
+interface GenerateImageData {
+  prompt: string;
+  negativePrompt?: string;
+  modelType: string;
+  width: number;
+  height: number;
+  numImages: number;
+}
 
-export const GenerateImageConfig: FC<GenerateImageConfigProps> = ({
-  nodeId,
-  initialData,
-  onClose,
-}) => {
+export const GenerateImageConfig: FC<GenerateImageConfigProps> = ({ nodeId, nodePath }) => {
   const dispatch = useAppDispatch();
-  const [generatorType, setGeneratorType] = useState<GeneratorType>(
-    initialData.generatorType || "dall-e"
-  );
-  const [prompt, setPrompt] = useState<string>(
-    initialData.prompt || ""
-  );
-  const [imageSize, setImageSize] = useState<ImageSize>(
-    initialData.imageSize || "medium"
-  );
-  const [numImages, setNumImages] = useState<number>(
-    initialData.numImages || 1
+
+  // Get any existing inputs for this node from the Redux store
+  const nodeInputs = useAppSelector((state: RootState) => 
+    state.tree.find(n => n.id === nodeId)?.inputs || {}
   );
 
-  const handleSave = () => {
-    const data = {
-      generatorType,
-      prompt,
-      imageSize,
-      numImages,
-    };
-    
-    dispatch(treeSlice.actions.updateNodeData({ id: nodeId, data }));
-    onClose();
+  // Get any inputs from parent nodes from the workflow path data
+  const pathData = useAppSelector((state) =>
+    state.workflow.pathData[nodePath] || {}
+  );
+
+  // Check if we have a prompt from a parent node
+  const upstreamPrompt = pathData.prompt as string;
+
+  const [imageData, setImageData] = useState<GenerateImageData>({
+    prompt: nodeInputs.prompt || "",
+    negativePrompt: nodeInputs.negativePrompt || "",
+    modelType: nodeInputs.modelType || "stable-diffusion-v1-5",
+    width: nodeInputs.width || 512,
+    height: nodeInputs.height || 512,
+    numImages: nodeInputs.numImages || 1,
+  });
+
+  // Update the Redux store when our configuration changes
+  useEffect(() => {
+    dispatch(treeSlice.actions.updateNodeInputs({ 
+      id: nodeId, 
+      inputs: imageData 
+    }));
+  }, [imageData, dispatch, nodeId]);
+
+  const handlePromptChange = (value: string) => {
+    const updatedData = { ...imageData, prompt: value };
+    setImageData(updatedData);
   };
 
+  const handleNegativePromptChange = (value: string) => {
+    const updatedData = { ...imageData, negativePrompt: value };
+    setImageData(updatedData);
+  };
+
+  const handleModelChange = (modelType: string) => {
+    const updatedData = { ...imageData, modelType };
+    setImageData(updatedData);
+  };
+
+  const handleSizeChange = (dimension: 'width' | 'height', value: number) => {
+    const updatedData = { ...imageData, [dimension]: value };
+    setImageData(updatedData);
+  };
+
+  const handleNumImagesChange = (value: number) => {
+    const updatedData = { ...imageData, numImages: value };
+    setImageData(updatedData);
+  };
+
+  const modelOptions = [
+    { id: 'stable-diffusion-v1-5', name: 'Stable Diffusion v1.5' },
+    { id: 'stable-diffusion-v2', name: 'Stable Diffusion v2' },
+    { id: 'dalle-3', name: 'DALL·E 3' },
+    { id: 'midjourney', name: 'Midjourney' },
+  ];
+
   return (
-    <div className="p-4">
-      <h3 className="font-medium text-lg mb-4">Configure Image Generation</h3>
+    <div className="space-y-6 p-4">
+      <h3 className="text-lg font-medium text-gray-900">Image Generation Settings</h3>
       
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Image Generator
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => setGeneratorType("dall-e")}
-            className={`px-4 py-2 text-sm border rounded-md ${
-              generatorType === "dall-e"
-                ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                : "border-gray-300 text-gray-700"
-            }`}
-          >
-            DALL-E
-          </button>
-          <button
-            type="button"
-            onClick={() => setGeneratorType("midjourney")}
-            className={`px-4 py-2 text-sm border rounded-md ${
-              generatorType === "midjourney"
-                ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                : "border-gray-300 text-gray-700"
-            }`}
-          >
-            Midjourney
-          </button>
-          <button
-            type="button"
-            onClick={() => setGeneratorType("stable-diffusion")}
-            className={`px-4 py-2 text-sm border rounded-md ${
-              generatorType === "stable-diffusion"
-                ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                : "border-gray-300 text-gray-700"
-            }`}
-          >
-            Stable Diffusion
-          </button>
-        </div>
-      </div>
-      
-      <div className="mb-4">
-        <label
-          htmlFor="prompt"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Prompt
-        </label>
-        <textarea
-          id="prompt"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          rows={3}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          placeholder="Describe the image you want to generate..."
-        />
-      </div>
+      <PromptInput
+        initialValue={imageData.prompt}
+        onChange={handlePromptChange}
+        label="Prompt"
+        placeholder="Enter a detailed description of the image you want to generate..."
+        helpText="Be specific about the subject, style, colors, composition, etc."
+        inputFromPreviousNode={upstreamPrompt}
+      />
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Image Size
+      <PromptInput
+        initialValue={imageData.negativePrompt}
+        onChange={handleNegativePromptChange}
+        label="Negative Prompt"
+        placeholder="Specify what you don't want in the image..."
+        helpText="Things to avoid in the generation (e.g., 'blurry, bad anatomy, distorted')"
+      />
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Model Type
         </label>
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => setImageSize("small")}
-            className={`px-4 py-2 text-sm border rounded-md ${
-              imageSize === "small"
-                ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                : "border-gray-300 text-gray-700"
-            }`}
-          >
-            Small
-          </button>
-          <button
-            type="button"
-            onClick={() => setImageSize("medium")}
-            className={`px-4 py-2 text-sm border rounded-md ${
-              imageSize === "medium"
-                ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                : "border-gray-300 text-gray-700"
-            }`}
-          >
-            Medium
-          </button>
-          <button
-            type="button"
-            onClick={() => setImageSize("large")}
-            className={`px-4 py-2 text-sm border rounded-md ${
-              imageSize === "large"
-                ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                : "border-gray-300 text-gray-700"
-            }`}
-          >
-            Large
-          </button>
+        <div className="grid grid-cols-2 gap-2">
+          {modelOptions.map((model) => (
+            <button
+              key={model.id}
+              type="button"
+              onClick={() => handleModelChange(model.id)}
+              className={`py-2 px-4 text-sm font-medium rounded-md ${
+                imageData.modelType === model.id
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+              }`}
+            >
+              {model.name}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="numImages"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Width (px)
+          </label>
+          <select
+            value={imageData.width}
+            onChange={(e) => handleSizeChange('width', parseInt(e.target.value))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="256">256</option>
+            <option value="512">512</option>
+            <option value="768">768</option>
+            <option value="1024">1024</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Height (px)
+          </label>
+          <select
+            value={imageData.height}
+            onChange={(e) => handleSizeChange('height', parseInt(e.target.value))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="256">256</option>
+            <option value="512">512</option>
+            <option value="768">768</option>
+            <option value="1024">1024</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
           Number of Images
         </label>
-        <input
-          type="number"
-          id="numImages"
-          min="1"
-          max="10"
-          value={numImages}
-          onChange={(e) => setNumImages(parseInt(e.target.value))}
+        <select
+          value={imageData.numImages}
+          onChange={(e) => handleNumImagesChange(parseInt(e.target.value))}
           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-      </div>
-      
-      <div className="flex justify-end gap-2 mt-6">
-        <NodeButton onClick={onClose} variant="ghost">
-          Cancel
-        </NodeButton>
-        <NodeButton onClick={handleSave} variant="primary">
-          Save Configuration
-        </NodeButton>
+        >
+          {[1, 2, 3, 4].map((num) => (
+            <option key={num} value={num}>
+              {num}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

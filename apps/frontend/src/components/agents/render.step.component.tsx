@@ -6,6 +6,8 @@ import store, {
   TreeState,
   treeSlice,
   useAppDispatch,
+  workflowSlice,
+  useAppSelector,
 } from "@frontend/components/agents/store";
 import { makeId } from "@packages/backend/encryption/make.id";
 import { NodeType } from "@packages/shared/agents/agent.flow";
@@ -15,6 +17,11 @@ import { NodeCard } from "./node-card.component";
 import { NodeButton } from "./node-button.component";
 import { NodeSelectionDialog } from "./node-selection-dialog.component";
 import { NodeConfigurationDialog } from "./node-configuration-dialog.component";
+
+// Helper function to build node path
+const buildNodePath = (node: TreeState): string => {
+  return node.parent ? `${node.parent}/${node.id}` : node.id;
+};
 
 // Selectors
 const selectTree = (state: { tree: TreeState[] }) => state.tree;
@@ -44,6 +51,22 @@ const NodeComponent: FC<{
   
   // Track newly added node ID to trigger configuration
   const [newlyAddedNodeId, setNewlyAddedNodeId] = useState<string | null>(null);
+
+  // Watch for node output changes to update workflow path data
+  const nodeOutputs = useAppSelector((state) => 
+    state.tree.find(n => n.id === node.id)?.outputs
+  );
+
+  // Update workflow path data when node outputs change
+  useEffect(() => {
+    if (nodeOutputs && Object.keys(nodeOutputs).length > 0) {
+      const nodePath = buildNodePath(node);
+      dispatch(workflowSlice.actions.updatePathData({ 
+        nodeId: nodePath, 
+        data: nodeOutputs 
+      }));
+    }
+  }, [nodeOutputs, node, dispatch]);
 
   // Effect to find and configure newly added node
   useEffect(() => {
