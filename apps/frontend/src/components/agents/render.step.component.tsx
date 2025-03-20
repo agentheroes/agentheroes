@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { Provider, useSelector } from "react-redux";
 import store, {
   TreeState,
@@ -14,6 +14,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import { NodeCard } from "./node-card.component";
 import { NodeButton } from "./node-button.component";
 import { NodeSelectionDialog } from "./node-selection-dialog.component";
+import { NodeConfigurationDialog } from "./node-configuration-dialog.component";
 
 // Selectors
 const selectTree = (state: { tree: TreeState[] }) => state.tree;
@@ -37,25 +38,61 @@ const NodeComponent: FC<{
   const dispatch = useAppDispatch();
   const selectChildNodes = makeSelectChildNodes();
   const childNodes = useSelector((state) => selectChildNodes(state, node.id));
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSelectionDialogOpen, setIsSelectionDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [selectedNodeForConfig, setSelectedNodeForConfig] = useState<TreeState | null>(null);
+  
+  // Track newly added node ID to trigger configuration
+  const [newlyAddedNodeId, setNewlyAddedNodeId] = useState<string | null>(null);
+
+  // Effect to find and configure newly added node
+  useEffect(() => {
+    if (newlyAddedNodeId) {
+      const newNode = childNodes.find(node => node.id === newlyAddedNodeId);
+      if (newNode) {
+        setSelectedNodeForConfig(newNode);
+        setIsConfigDialogOpen(true);
+        setNewlyAddedNodeId(null);
+      }
+    }
+  }, [childNodes, newlyAddedNodeId]);
 
   const openNodeSelectionDialog = () => {
-    setIsDialogOpen(true);
+    setIsSelectionDialogOpen(true);
   };
 
   const closeNodeSelectionDialog = () => {
-    setIsDialogOpen(false);
+    setIsSelectionDialogOpen(false);
+  };
+
+  const openNodeConfigDialog = (nodeToConfig: TreeState) => {
+    setSelectedNodeForConfig(nodeToConfig);
+    setIsConfigDialogOpen(true);
+  };
+
+  const closeNodeConfigDialog = () => {
+    setIsConfigDialogOpen(false);
+    setSelectedNodeForConfig(null);
   };
 
   const handleNodeSelection = (nodeType: NodeType) => {
+    // Generate a new ID for the node
+    const newNodeId = makeId(10);
+    
+    // Add the node
     dispatch(
       treeSlice.actions.addValue({
-        id: makeId(10),
+        id: newNodeId,
         parent: node.id,
         type: nodeType,
         data: {},
       }),
     );
+    
+    // Set newly added node ID to trigger configuration dialog
+    setNewlyAddedNodeId(newNodeId);
+    
+    // Close the selection dialog
     closeNodeSelectionDialog();
   };
 
@@ -74,7 +111,11 @@ const NodeComponent: FC<{
         }))}
       >
         <div>
-          <NodeCard node={node} isRoot={isRoot}>
+          <NodeCard 
+            node={node} 
+            isRoot={isRoot}
+            onConfigure={() => openNodeConfigDialog(node)}
+          >
             {shouldShowAddButton && (
               <NodeButton
                 onClick={openNodeSelectionDialog}
@@ -89,10 +130,17 @@ const NodeComponent: FC<{
 
       {/* Node Selection Dialog */}
       <NodeSelectionDialog
-        isOpen={isDialogOpen}
+        isOpen={isSelectionDialogOpen}
         onClose={closeNodeSelectionDialog}
         onSelectNode={handleNodeSelection}
         currentNodeType={node.type}
+      />
+
+      {/* Node Configuration Dialog */}
+      <NodeConfigurationDialog
+        isOpen={isConfigDialogOpen}
+        node={selectedNodeForConfig || node}
+        onClose={closeNodeConfigDialog}
       />
 
       {/* Child Content */}

@@ -31,6 +31,13 @@ export const treeSlice = createSlice({
     removeNode: (state, action: PayloadAction<string>) => {
       state = state.filter((f) => f.id !== action.payload);
     },
+    updateNodeData: (state, action: PayloadAction<{ id: string; data: any }>) => {
+      const { id, data } = action.payload;
+      const node = state.find(node => node.id === id);
+      if (node) {
+        node.data = { ...node.data, ...data };
+      }
+    },
   },
 });
 
