@@ -1,6 +1,8 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
+import { Textarea } from "@frontend/components/ui/textarea";
+import { Button } from "@frontend/components/ui/button";
 
 interface PromptInputProps {
   initialValue: string;
@@ -62,26 +64,27 @@ export const PromptInput: FC<PromptInputProps> = ({
         </label>
         
         {inputFromPreviousNode && allowOverride && (
-          <button
+          <Button
             type="button"
             onClick={toggleOverride}
-            className={`text-xs px-2 py-1 rounded-md ${
+            variant="outline"
+            className={`text-xs px-2 py-1 h-auto ${
               isOverriding 
                 ? "bg-orange-100 text-orange-700 hover:bg-orange-200" 
                 : "bg-green-100 text-green-700 hover:bg-green-200"
             }`}
           >
             {isOverriding ? "Using Custom" : "Using Upstream"}
-          </button>
+          </Button>
         )}
       </div>
       
       {inputFromPreviousNode && !isOverriding ? (
         <div className="relative">
-          <textarea
+          <Textarea
             value={inputFromPreviousNode}
             readOnly
-            className="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pr-3 pl-3 py-2"
+            className="bg-gray-50"
             rows={3}
             disabled={true}
           />
@@ -90,11 +93,10 @@ export const PromptInput: FC<PromptInputProps> = ({
           </div>
         </div>
       ) : (
-        <textarea
+        <Textarea
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           placeholder={placeholder}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           rows={3}
           disabled={disabled}
         />

@@ -1,23 +1,17 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { treeSlice, useAppDispatch, useAppSelector, RootState } from "../store";
-import { PromptInput } from "../shared/prompt-input.component";
+import { GenerateCharacter } from "./generate-image-options/generate-character.component";
+import { GenerateStandardImage } from "./generate-image-options/generate-standard-image.component";
+import { Button } from "@frontend/components/ui/button";
 
 export interface GenerateImageConfigProps {
   nodeId: string;
   nodePath: string;
 }
 
-interface GenerateImageData {
-  prompt: string;
-  negativePrompt?: string;
-  modelType: string;
-  width: number;
-  height: number;
-  numImages: number;
-}
+type GenerationMode = "character" | "standard";
 
 export const GenerateImageConfig: FC<GenerateImageConfigProps> = ({ nodeId, nodePath }) => {
   const dispatch = useAppDispatch();
@@ -35,13 +29,21 @@ export const GenerateImageConfig: FC<GenerateImageConfigProps> = ({ nodeId, node
   // Check if we have a prompt from a parent node
   const upstreamPrompt = pathData.prompt as string;
 
-  const [imageData, setImageData] = useState<GenerateImageData>({
-    prompt: nodeInputs.prompt || "",
-    negativePrompt: nodeInputs.negativePrompt || "",
-    modelType: nodeInputs.modelType || "stable-diffusion-v1-5",
-    width: nodeInputs.width || 512,
-    height: nodeInputs.height || 512,
-    numImages: nodeInputs.numImages || 1,
+  // Create nodePathData object to pass to child components
+  const nodePathData = {
+    triggerType: pathData.triggerType,
+    ...pathData
+  };
+
+  // Set up state for generation mode
+  const [generationMode, setGenerationMode] = useState<GenerationMode>(
+    nodeInputs.generationMode || "standard"
+  );
+
+  // State for image generation data
+  const [imageData, setImageData] = useState<any>({
+    generationMode: nodeInputs.generationMode || "standard",
+    ...(nodeInputs || {})
   });
 
   // Update the Redux store when our configuration changes
@@ -50,133 +52,85 @@ export const GenerateImageConfig: FC<GenerateImageConfigProps> = ({ nodeId, node
       id: nodeId, 
       inputs: imageData 
     }));
+
+    // Also set outputs for downstream nodes
+    const outputs = {
+      ...imageData,
+      images: ['https://example.com/generated-image.jpg'] // Placeholder for actual generated image
+    };
+
+    dispatch(treeSlice.actions.updateNodeOutputs({
+      id: nodeId,
+      outputs
+    }));
   }, [imageData, dispatch, nodeId]);
 
-  const handlePromptChange = (value: string) => {
-    const updatedData = { ...imageData, prompt: value };
-    setImageData(updatedData);
+  const handleModeChange = (mode: GenerationMode) => {
+    setGenerationMode(mode);
+    setImageData((prevData: any) => ({
+      ...prevData,
+      generationMode: mode
+    }));
   };
 
-  const handleNegativePromptChange = (value: string) => {
-    const updatedData = { ...imageData, negativePrompt: value };
-    setImageData(updatedData);
+  const handleImageDataChange = (data: any) => {
+    setImageData((prevData: any) => ({
+      ...prevData,
+      ...data
+    }));
   };
 
-  const handleModelChange = (modelType: string) => {
-    const updatedData = { ...imageData, modelType };
-    setImageData(updatedData);
+  // Render the appropriate generation component based on the mode
+  const renderGenerationOptions = () => {
+    switch (generationMode) {
+      case "character":
+        return (
+          <GenerateCharacter 
+            initialData={imageData} 
+            onDataChange={handleImageDataChange}
+            upstreamPrompt={upstreamPrompt}
+            nodePathData={nodePathData}
+          />
+        );
+      case "standard":
+        return (
+          <GenerateStandardImage 
+            initialData={imageData} 
+            onDataChange={handleImageDataChange}
+            upstreamPrompt={upstreamPrompt}
+            nodePathData={nodePathData}
+          />
+        );
+      default:
+        return null;
+    }
   };
-
-  const handleSizeChange = (dimension: 'width' | 'height', value: number) => {
-    const updatedData = { ...imageData, [dimension]: value };
-    setImageData(updatedData);
-  };
-
-  const handleNumImagesChange = (value: number) => {
-    const updatedData = { ...imageData, numImages: value };
-    setImageData(updatedData);
-  };
-
-  const modelOptions = [
-    { id: 'stable-diffusion-v1-5', name: 'Stable Diffusion v1.5' },
-    { id: 'stable-diffusion-v2', name: 'Stable Diffusion v2' },
-    { id: 'dalle-3', name: 'DALL·E 3' },
-    { id: 'midjourney', name: 'Midjourney' },
-  ];
 
   return (
     <div className="space-y-6 p-4">
       <h3 className="text-lg font-medium text-gray-900">Image Generation Settings</h3>
       
-      <PromptInput
-        initialValue={imageData.prompt}
-        onChange={handlePromptChange}
-        label="Prompt"
-        placeholder="Enter a detailed description of the image you want to generate..."
-        helpText="Be specific about the subject, style, colors, composition, etc."
-        inputFromPreviousNode={upstreamPrompt}
-      />
-
-      <PromptInput
-        initialValue={imageData.negativePrompt}
-        onChange={handleNegativePromptChange}
-        label="Negative Prompt"
-        placeholder="Specify what you don't want in the image..."
-        helpText="Things to avoid in the generation (e.g., 'blurry, bad anatomy, distorted')"
-      />
-
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
-          Model Type
+          Generation Type
         </label>
         <div className="grid grid-cols-2 gap-2">
-          {modelOptions.map((model) => (
-            <button
-              key={model.id}
-              type="button"
-              onClick={() => handleModelChange(model.id)}
-              className={`py-2 px-4 text-sm font-medium rounded-md ${
-                imageData.modelType === model.id
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              {model.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Width (px)
-          </label>
-          <select
-            value={imageData.width}
-            onChange={(e) => handleSizeChange('width', parseInt(e.target.value))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          <Button
+            variant={generationMode === "standard" ? "default" : "outline"}
+            onClick={() => handleModeChange("standard")}
           >
-            <option value="256">256</option>
-            <option value="512">512</option>
-            <option value="768">768</option>
-            <option value="1024">1024</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Height (px)
-          </label>
-          <select
-            value={imageData.height}
-            onChange={(e) => handleSizeChange('height', parseInt(e.target.value))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            Generate Image
+          </Button>
+          <Button
+            variant={generationMode === "character" ? "default" : "outline"}
+            onClick={() => handleModeChange("character")}
           >
-            <option value="256">256</option>
-            <option value="512">512</option>
-            <option value="768">768</option>
-            <option value="1024">1024</option>
-          </select>
+            Generate Character
+          </Button>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Number of Images
-        </label>
-        <select
-          value={imageData.numImages}
-          onChange={(e) => handleNumImagesChange(parseInt(e.target.value))}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        >
-          {[1, 2, 3, 4].map((num) => (
-            <option key={num} value={num}>
-              {num}
-            </option>
-          ))}
-        </select>
-      </div>
+      {renderGenerationOptions()}
     </div>
   );
 }; 

@@ -2,17 +2,21 @@
 
 import { FC, useState, useEffect } from "react";
 import { PromptInput } from "../../shared/prompt-input.component";
+import { Button } from "@frontend/components/ui/button";
+import { Textarea } from "@frontend/components/ui/textarea";
 
 interface CustomScriptProps {
   initialData: any;
   onDataChange: (data: any) => void;
   upstreamPrompt?: string;
+  nodePathData?: any;
 }
 
 export const CustomScript: FC<CustomScriptProps> = ({
   initialData,
   onDataChange,
   upstreamPrompt,
+  nodePathData,
 }) => {
   const [scriptContent, setScriptContent] = useState<string>(
     initialData.customScript || "// Write your custom script here\n\n// Example:\n// function processData(data) {\n//   return { processed: data };\n// }"
@@ -23,6 +27,14 @@ export const CustomScript: FC<CustomScriptProps> = ({
   const [prompt, setPrompt] = useState<string>(
     initialData.prompt || ""
   );
+  
+  // Add the API trigger check
+  const [requiresAuth, setRequiresAuth] = useState<boolean>(
+    initialData.requiresAuth || false
+  );
+  
+  // Check if the upstream trigger is of type "API"
+  const upstreamTriggerIsApi = nodePathData?.triggerType === "api";
   
   // Update data when upstream prompt changes
   useEffect(() => {
@@ -71,30 +83,27 @@ export const CustomScript: FC<CustomScriptProps> = ({
             { id: "python", label: "Python" },
             { id: "typescript", label: "TypeScript" }
           ].map((lang) => (
-            <button
+            <Button
               key={lang.id}
-              type="button"
+              variant={scriptLanguage === lang.id ? "default" : "outline"}
               onClick={() => handleLanguageChange(lang.id)}
-              className={`px-4 py-2 text-sm border rounded-md ${
-                scriptLanguage === lang.id
-                  ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                  : "border-gray-300 text-gray-700"
-              }`}
             >
               {lang.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
       
-      <PromptInput
-        initialValue={prompt}
-        onChange={handlePromptChange}
-        label="Script Input"
-        placeholder="Enter a prompt for the script to use..."
-        helpText="This will be available to your script as 'prompt' variable"
-        inputFromPreviousNode={upstreamPrompt}
-      />
+      {!upstreamTriggerIsApi && (
+        <PromptInput
+          initialValue={prompt}
+          onChange={handlePromptChange}
+          label="Script Input"
+          placeholder="Enter a prompt for the script to use..."
+          helpText="This will be available to your script as 'prompt' variable"
+          inputFromPreviousNode={upstreamPrompt}
+        />
+      )}
       
       <div>
         <label
@@ -114,7 +123,7 @@ export const CustomScript: FC<CustomScriptProps> = ({
             </span>
             <span className="text-xs text-gray-400">Custom Code Editor</span>
           </div>
-          <textarea
+          <Textarea
             id="scriptContent"
             value={scriptContent}
             onChange={(e) => handleScriptChange(e.target.value)}

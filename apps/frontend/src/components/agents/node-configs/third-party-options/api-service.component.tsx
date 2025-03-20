@@ -2,17 +2,22 @@
 
 import { FC, useState, useEffect } from "react";
 import { PromptInput } from "../../shared/prompt-input.component";
+import { Input } from "@frontend/components/ui/input";
+import { Button } from "@frontend/components/ui/button";
+import { Checkbox } from "@frontend/components/ui/checkbox";
 
 interface APIServiceProps {
   initialData: any;
   onDataChange: (data: any) => void;
   upstreamPrompt?: string;
+  nodePathData?: any;
 }
 
 export const APIService: FC<APIServiceProps> = ({
   initialData,
   onDataChange,
   upstreamPrompt,
+  nodePathData,
 }) => {
   const [apiUrl, setApiUrl] = useState<string>(
     initialData.apiUrl || "https://"
@@ -32,6 +37,9 @@ export const APIService: FC<APIServiceProps> = ({
   const [authValue, setAuthValue] = useState<string>(
     initialData.authValue || ""
   );
+
+  // Check if the upstream trigger is of type "API"
+  const upstreamTriggerIsApi = nodePathData?.triggerType === "api";
 
   // Update data when upstream prompt changes
   useEffect(() => {
@@ -102,24 +110,25 @@ export const APIService: FC<APIServiceProps> = ({
         >
           API URL
         </label>
-        <input
+        <Input
           type="text"
           id="apiUrl"
           value={apiUrl}
           onChange={(e) => handleApiUrlChange(e.target.value)}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           placeholder="https://api.example.com/v1/data"
         />
       </div>
       
-      <PromptInput
-        initialValue={prompt}
-        onChange={handlePromptChange}
-        label="API Prompt"
-        placeholder="Enter a prompt for the API call..."
-        helpText="This will be sent as part of the request body"
-        inputFromPreviousNode={upstreamPrompt}
-      />
+      {!upstreamTriggerIsApi && (
+        <PromptInput
+          initialValue={prompt}
+          onChange={handlePromptChange}
+          label="API Prompt"
+          placeholder="Enter a prompt for the API call..."
+          helpText="This will be sent as part of the request body"
+          inputFromPreviousNode={upstreamPrompt}
+        />
+      )}
       
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -127,31 +136,28 @@ export const APIService: FC<APIServiceProps> = ({
         </label>
         <div className="grid grid-cols-4 gap-2">
           {["GET", "POST", "PUT", "DELETE"].map((method) => (
-            <button
+            <Button
               key={method}
               type="button"
+              variant={apiMethod === method ? "default" : "outline"}
               onClick={() => handleApiMethodChange(method)}
-              className={`px-4 py-2 text-sm border rounded-md ${
-                apiMethod === method
-                  ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                  : "border-gray-300 text-gray-700"
-              }`}
             >
               {method}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
       
-      <div className="flex items-center">
-        <input
+      <div className="flex items-center space-x-2">
+        <Checkbox
           id="requiresAuth"
-          type="checkbox"
           checked={requiresAuth}
-          onChange={toggleAuthRequired}
-          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          onCheckedChange={toggleAuthRequired}
         />
-        <label htmlFor="requiresAuth" className="ml-2 block text-sm text-gray-700">
+        <label 
+          htmlFor="requiresAuth" 
+          className="text-sm text-gray-700 cursor-pointer"
+        >
           Requires Authentication
         </label>
       </div>
@@ -168,18 +174,14 @@ export const APIService: FC<APIServiceProps> = ({
                 { id: "basic", label: "Basic Auth" },
                 { id: "api-key", label: "API Key" }
               ].map((type) => (
-                <button
+                <Button
                   key={type.id}
                   type="button"
+                  variant={authType === type.id ? "default" : "outline"}
                   onClick={() => handleAuthTypeChange(type.id)}
-                  className={`px-4 py-2 text-sm border rounded-md ${
-                    authType === type.id
-                      ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                      : "border-gray-300 text-gray-700"
-                  }`}
                 >
                   {type.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -195,12 +197,11 @@ export const APIService: FC<APIServiceProps> = ({
                   ? "Credentials (username:password)" 
                   : "API Key"}
             </label>
-            <input
+            <Input
               type="text"
               id="authValue"
               value={authValue}
               onChange={(e) => handleAuthValueChange(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               placeholder={authType === "bearer" 
                 ? "Bearer token" 
                 : authType === "basic" 
@@ -217,12 +218,13 @@ export const APIService: FC<APIServiceProps> = ({
       )}
       
       <div className="mt-4 pt-3 border-t border-gray-200">
-        <button
+        <Button
           onClick={testApi}
-          className="w-full px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+          variant="outline"
+          className="w-full"
         >
           Test API Connection
-        </button>
+        </Button>
       </div>
     </div>
   );

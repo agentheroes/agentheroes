@@ -61,6 +61,7 @@ const NodeComponent: FC<{
   useEffect(() => {
     if (nodeOutputs && Object.keys(nodeOutputs).length > 0) {
       const nodePath = buildNodePath(node);
+      console.log(`Updating path data for ${nodePath}:`, nodeOutputs);
       dispatch(workflowSlice.actions.updatePathData({ 
         nodeId: nodePath, 
         data: nodeOutputs 
@@ -123,7 +124,7 @@ const NodeComponent: FC<{
     !isRoot || (isRoot && node.type === NodeType.TRIGGER);
 
   return (
-    <div className="flex flex-col items-center gap-[60px]">
+    <div className="flex flex-col items-center gap-[60px] text-black">
       <ArcherElement
         id={node.id}
         relations={childNodes.map((p) => ({
