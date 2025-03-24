@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String             @id @default(uuid())
+  email         String
+  password      String?
+  providerName  Provider
+  name          String?
+  lastName      String?
+  isSuperAdmin  Boolean            @default(false)
+  providerId    String?
+  organizations UserOrganization[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  activated     Boolean            @default(true)
+
+  @@unique([email, providerName])
+}
+
+model Organization {
+  id         String             @id @default(uuid())
+  users      UserOrganization[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  allowTrial Boolean            @default(false)
+  character  Characters[]
+  media      Media[]
+  channels   Channels[]
+  posts      Posts[]
+  agents     Agent[]
+  agentStep  AgentStep[]
+}
+
+model UserOrganization {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  disabled       Boolean      @default(false)
+  role           Role         @default(USER)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@unique([userId, organizationId])
+  @@index([disabled])
+}
+
+model Models {
+  container String
+  models String
+  apiKey String
+
+  @@id([container])
+}
+
+model Characters {
+  id String @id @default(uuid())
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  avatar String
+  media Media[]
+  name String
+  images String
+  models String
+  lora String?
+  status Status
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+model Media {
+  id String @id @default(uuid())
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  characterId String?
+  character Characters? @relation(fields: [characterId], references: [id])
+  prompt String
+  media String
+  originalUrl String?
+  type  Type
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([characterId])
+  @@index([deletedAt])
+}
+
+model Channels {
+  id String @default(uuid())
+  organizationId String
+  rootInternalId String
+  currentInternalId String
+  identifier     String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  name String
+  username String
+  profilePic String
+  token String
+  refreshToken String
+  expiresIn Int
+  timezone Int
+  shouldRefresh  Boolean
+  selectionRequired Boolean
+  posts          Posts[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@id([organizationId, rootInternalId, currentInternalId])
+  @@unique([id])
+  @@index([rootInternalId])
+  @@index([id])
+  @@index([identifier])
+  @@index([deletedAt])
+}
+
+model Posts {
+  id String @id @default(uuid())
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  channelId String
+  channel Channels @relation(fields: [channelId], references: [id])
+  content String
+  media String
+  group String
+  type String
+  order Int
+  status         PostStatus   @default(PENDING)
+  error          String?
+  internalId     String?
+  date           DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([type])
+  @@index([channelId])
+  @@index([group])
+  @@index([order])
+  @@index([date])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model SocialAuth {
+  identifier     String
+  privateKey     String
+  publicKey      String
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@id([identifier])
+  @@index([identifier])
+  @@index([deletedAt])
+}
+
+model Agent {
+  id String @id @default(uuid())
+  name String
+  organizationId String
+  model          String
+  active         Boolean @default(true)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  agentSteps     AgentStep[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([deletedAt])
+  @@index([organizationId])
+}
+
+model AgentStep {
+  id String @id @default(uuid())
+  type String
+  node String
+  data String
+  parentId       String
+  renderedText   String
+  agentId        String
+  agent          Agent @relation(fields: [agentId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([agentId])
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+enum Provider {
+  LOCAL
+  GITHUB
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+enum Type {
+  VIDEO
+  IMAGE
+}
+
+enum Status {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum PostStatus {
+  PENDING
+  POSTED
+  ERROR
+}

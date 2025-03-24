@@ -1,0 +1,82 @@
+services:
+  app:
+    env_file:
+      - path: ./env
+        required: false
+    build:
+      context: .
+      dockerfile: Dockerfile
+#    image: ghcr.io/agentheroes/agentheroes:latest
+#    container_name: agent-heroes
+    ports:
+      - "4200:4200"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/agentheroes}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      AUTH_SECRET: ${AUTH_SECRET:-frjO/rySj/c8YF87JNH/aMsHQiZfwNgBeRuXpM8S7NI=}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY:-/uploads}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
+      CLOUDFLARE_ACCESS_KEY: ${CLOUDFLARE_ACCESS_KEY}
+      CLOUDFLARE_SECRET_ACCESS_KEY: ${CLOUDFLARE_SECRET_ACCESS_KEY}
+      CLOUDFLARE_BUCKETNAME: ${CLOUDFLARE_BUCKETNAME}
+      CLOUDFLARE_BUCKET_URL: ${CLOUDFLARE_BUCKET_URL}
+      CLOUDFLARE_REGION: ${CLOUDFLARE_REGION}
+      WEBSITE_URL: ${WEBSITE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - uploads:${UPLOAD_DIRECTORY:-/uploads}
+    restart: always
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: agentheroes
+      PGDATA: /var/lib/postgresql/data/agentheroes/
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  uploads:
+    external: false
+  postgres-data:
+    external: false
+  redis-data:
+    external: false

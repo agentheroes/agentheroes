@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": true,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@frontend/*": ["./apps/frontend/src/*"],
+      "@backend/*": ["./apps/backend/src/*"],
+      "@workers/*": ["./apps/workers/src/*"],
+      "@packages/*": ["./packages/*"]
+    }
+  }
+}
