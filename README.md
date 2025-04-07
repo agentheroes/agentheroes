@@ -7,12 +7,11 @@
   </a>
 </p>
 
-
-<p align="center">
-<a href="https://opensource.org/licenses/Agpl-3.0">
-  <img src="https://img.shields.io/badge/License-AGPL%203.0-blue.svg" alt="License">
-</a>
-</p>
+<div align="center">
+  <strong>
+  <h2>Generate, animate and schedule your AI characters</h2>
+  </strong>
+</div>
 
 <p align="center">
   <br />
