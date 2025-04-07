@@ -8,7 +8,6 @@ import { NodeType } from "@packages/shared/agents/agent.flow";
 import { ReactNode } from "react";
 import { Label } from "@frontend/components/ui/label";
 import { Input } from "@frontend/components/ui/input";
-import {string} from "yup";
 
 class RssNodeComponent extends NodeComponent {
   state = {

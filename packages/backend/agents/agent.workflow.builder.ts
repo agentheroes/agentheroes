@@ -7,7 +7,7 @@ import { SocialMediaAgent } from "@packages/backend/agents/providers/publish/soc
 import { RssAgent } from "@packages/backend/agents/providers/third-party/rss.agent";
 import { ApiAgent } from "@packages/backend/agents/providers/trigger/api.agent";
 import { ScheduleAgent } from "@packages/backend/agents/providers/trigger/schedule.agent";
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { EventEmitter } from "events";
 
