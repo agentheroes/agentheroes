@@ -26,8 +26,9 @@
 <br />
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/464770a2-92ea-4cc5-bc32-a5e537b1afcc" width="100%" />
+  <video src="https://github.com/user-attachments/assets/727f21ff-4516-4c6b-b76f-b3bf0041158b" width="100%" />
 </p>
+
 
 # Intro
 
