@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-#    image: ghcr.io/agentheroes/agentheroes:latest
+#    image: ghcr.io/agentheroes/agent-heroes:latest
 #    container_name: agent-heroes
     ports:
       - "4200:4200"
