@@ -17,9 +17,9 @@ export function MediaStyleSelector({
 
   // Define all available styles
   const styles = [
-    "realism", "comics", "painting", "anime", "cartoon", "pixel art",
+    "none", "realism", "comics", "painting", "anime", "cartoon", "pixel art",
     "watercolor", "oil painting", "3D render", "sketch", "abstract",
-    "minimalist", "pop art", "cyberpunk", "fantasy"
+    "minimalist", "cyberpunk", "fantasy"
   ];
 
   return (
@@ -30,7 +30,7 @@ export function MediaStyleSelector({
           <div 
             key={style}
             className={`aspect-square bg-[#2A2A2A] rounded-md flex items-center justify-center cursor-pointer border-2 ${selectedStyle === style ? "border-[#FD7302]" : "border-transparent"}`}
-            onClick={() => handleStyleSelect(style)}
+            onClick={() => handleStyleSelect(style === 'none' ? '' : style)}
           >
             <span className="text-[#F0F0F0] text-sm">{style.charAt(0).toUpperCase() + style.slice(1)}</span>
           </div>
