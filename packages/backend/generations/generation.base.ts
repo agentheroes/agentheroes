@@ -7,10 +7,9 @@ import { GenerationIdentifiers } from "@packages/backend/generations/generation.
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
 import { UploadService } from "@packages/backend/upload/upload.service";
 import axios from "axios";
-import * as AdmZIP from "adm-zip";
+import AdmZIP from "adm-zip";
 import { makeId } from "@packages/backend/encryption/make.id";
 import { Readable } from "stream";
-import {BaseChatModel} from "@langchain/core/language_models/chat_models";
 
 export abstract class GenerationBase implements GenerationBaseInterface {
   upload = new UploadService();
@@ -38,7 +37,6 @@ export abstract class GenerationBase implements GenerationBaseInterface {
       }),
     );
 
-    // @ts-ignore
     const zip = new AdmZIP();
     for (const image of loadImages) {
       zip.addFile(makeId(10) + ".png", image.data);
