@@ -15,6 +15,6 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(json({ limit: "20mb" }));
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(3000);
 }
 bootstrap();
