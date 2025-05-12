@@ -33,6 +33,11 @@ export class OrganizationRepository {
           select: {
             disabled: true,
             role: true,
+            organization: {
+              select: {
+                credits: true,
+              },
+            },
           },
         },
       },
@@ -91,5 +96,19 @@ export class OrganizationRepository {
     });
 
     return create;
+  }
+
+  async addCredits(org: string, id: string, credits: number) {
+    return this._organization.model.organization.update({
+      where: {
+        id: org,
+      },
+      data: {
+        lastId: id,
+        credits: {
+          increment: credits,
+        },
+      },
+    });
   }
 }

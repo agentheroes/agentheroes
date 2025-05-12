@@ -5,6 +5,7 @@ import { UploadService } from "@packages/backend/upload/upload.service";
 import { SchedulerService } from "@packages/backend/scheduler/scheduler.service";
 import { AgentProcessService } from "@packages/backend/agents/agent.process.service";
 import { AgentModule } from "@packages/backend/agents/agent.module";
+import {Nowpayments} from "@packages/backend/payments/nowpayments.service";
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { AgentModule } from "@packages/backend/agents/agent.module";
     UploadService,
     SchedulerService,
     AgentProcessService,
+    Nowpayments,
   ],
   get exports() {
     return [...this.providers, ...this.imports];

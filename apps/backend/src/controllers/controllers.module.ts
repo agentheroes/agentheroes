@@ -10,6 +10,7 @@ import { SocialController } from "@backend/controllers/social.controller";
 import { RedirectController } from "@backend/controllers/redirect.controller";
 import { AgentController } from "@backend/controllers/agent.controller";
 import { TriggerController } from "@backend/controllers/trigger.controller";
+import {PublicController} from "@backend/controllers/public.controller";
 
 const authControllers = [
   UsersController,
@@ -27,6 +28,7 @@ const authControllers = [
     AuthController,
     RedirectController,
     TriggerController,
+    PublicController,
     ...authControllers,
   ],
   providers: [],

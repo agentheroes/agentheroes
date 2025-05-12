@@ -36,6 +36,8 @@ model Organization {
   posts      Posts[]
   agents     Agent[]
   agentStep  AgentStep[]
+  credits    Int @default(200)
+  lastId     String?
 }
 
 model UserOrganization {

@@ -34,4 +34,8 @@ export class OrganizationService {
   ) {
     return this._organizationRepository.addUserToOrg(userId, id, orgId, role);
   }
+
+  addCredits(org: string, id: string, credits: number) {
+    return this._organizationRepository.addCredits(org, id, credits);
+  }
 }

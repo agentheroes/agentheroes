@@ -161,7 +161,7 @@ export function CharacterUploadStep1({
   };
 
   const handleContinue = () => {
-    if (uploadedImages.length < 2) {
+    if (uploadedImages.length < 1) {
       setError("Please upload at least 2 images");
       return;
     }
@@ -188,7 +188,7 @@ export function CharacterUploadStep1({
           Step 1: Upload Your Character Images
         </h3>
         <p className="text-gray-500 mb-4">
-          Upload at least 2 images of your character to train the model.
+          Upload at least 1 images of your character to train the model.
         </p>
       </div>
 
