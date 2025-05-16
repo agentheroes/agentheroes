@@ -19,8 +19,6 @@
   <br />
 
   <br/>
-    <a href="https://discord.gg/Sk9se5Dcef">Join Our Discord</a>
-    ·
     <a href="https://agentheroes.ai">Website</a>
   </p>
 <br />
