@@ -19,6 +19,7 @@ import {
 import { MediaPreview } from "./preview";
 import { MediaStyleSelector } from "./style-selector";
 import { ModelSelector } from "./model-selector";
+import useSWR from "swr";
 
 interface Character {
   id: string;
@@ -53,6 +54,7 @@ export function MediaCreationPage() {
   const fetch = useFetch();
   const { toast } = useToast();
   const router = useRouter();
+  const { mutate } = useSWR("/user/self");
 
   // Set source image if provided via URL params
   useEffect(() => {
@@ -216,6 +218,9 @@ export function MediaCreationPage() {
       if (response.ok) {
         const data = await response.json();
         setGeneratedImage(Array.isArray(data.generated) ? data.generated[0] : data.generated.originalUrl);
+        
+        // Refresh user data to update credits
+        await mutate();
       } else {
         toast({
           title: "Error",

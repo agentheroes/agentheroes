@@ -38,4 +38,8 @@ export class OrganizationService {
   addCredits(org: string, id: string, credits: number) {
     return this._organizationRepository.addCredits(org, id, credits);
   }
+
+  setCredits(id: string, credits: number) {
+    return this._organizationRepository.setCredits(id, credits);
+  }
 }

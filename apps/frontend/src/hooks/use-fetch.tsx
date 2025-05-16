@@ -1,5 +1,7 @@
 "use client";
 import { createContext, FC, ReactNode, useCallback, useContext } from "react";
+import { useCreditsDialog } from "@frontend/components/credits/credits-dialog-context";
+import { toast } from "@frontend/hooks/use-toast";
 
 export const FetchContext = createContext({
   beforeRequest: (
@@ -16,14 +18,24 @@ export const FetchContext = createContext({
 export const FetchProviderComponent: FC<{
   children: ReactNode;
 }> = ({ children }) => {
+  const { openCreditsDialog } = useCreditsDialog();
+
   return (
     <FetchContext.Provider
       value={{
-        afterRequest: async (res) => {
+        afterRequest: async (res, url) => {
           if (res.headers.get("onboarding")) {
             window.location.href = "/onboarding";
           } else if (res.headers.get("reload")) {
             window.location.reload();
+          } else if (res.status === 402) {
+            // Payment Required - out of credits
+            toast({
+              title: "Out of Credits",
+              description: "You don't have enough credits for this operation.",
+              variant: "destructive",
+            });
+            openCreditsDialog();
           }
           return res;
         },

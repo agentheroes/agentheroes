@@ -6,6 +6,7 @@ import { Input } from "@frontend/components/ui/input";
 import { Label } from "@frontend/components/ui/label";
 import { useState, useEffect } from "react";
 import {useFetch} from "@frontend/hooks/use-fetch";
+import useSWR from "swr";
 
 interface CharacterGeneratorStep3Props {
   baseImage: any;
@@ -38,6 +39,7 @@ export function CharacterGeneratorStep3({
   }>>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const fetch = useFetch();
+  const { mutate } = useSWR("/user/self");
 
   useEffect(() => {
     const fetchTrainingModels = async () => {
@@ -108,6 +110,9 @@ export function CharacterGeneratorStep3({
       if (!response.ok) {
         throw new Error("Failed to submit training request");
       }
+      
+      // Refresh user data to update credits
+      await mutate();
       
       // If successful, proceed with onSubmit callback
       onSubmit();

@@ -111,4 +111,15 @@ export class OrganizationRepository {
       },
     });
   }
+
+  setCredits(id: string, credits: number) {
+    return this._organization.model.organization.update({
+      where: {
+        id,
+      },
+      data: {
+        credits,
+      },
+    });
+  }
 }

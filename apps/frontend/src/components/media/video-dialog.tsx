@@ -13,6 +13,8 @@ import {
   DialogFooter,
 } from "@frontend/components/ui/dialog";
 import { Spinner } from "@frontend/components/ui/spinner";
+import { useUser } from "@frontend/hooks/use-user";
+import useSWR from "swr";
 
 interface VideoModel {
   label: string;
@@ -44,6 +46,7 @@ export function VideoDialog({
 
   const fetch = useFetch();
   const { toast } = useToast();
+  const { mutate } = useSWR("/user/self");
 
   // Track component mount status
   useEffect(() => {
@@ -142,6 +145,10 @@ export function VideoDialog({
         const data = await response.json();
         const videoUrl = data.generated[0];
         onVideoGenerated(videoUrl);
+        
+        // Refresh user data to update credits
+        await mutate();
+        
         toast({
           title: "Success",
           description: "Video generated successfully",

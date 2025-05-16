@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Headers, Param, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpException,
+  Param,
+  Post,
+} from "@nestjs/common";
 import { ModelsService } from "@packages/backend/database/models/models.service";
 import { GenerateModelDto } from "@packages/shared/dto/models/generate.model.dto";
 import { GenerationCategory } from "@packages/backend/generations/generation.category";
@@ -6,12 +14,15 @@ import { GetOrganizationFromRequest } from "@backend/services/auth/org.from.requ
 import { Organization } from "@prisma/client";
 import { GenerateCharacterDto } from "@packages/shared/dto/models/generate.character.dto";
 import { MediaService } from "@packages/backend/database/media/media.service";
+import { calculateCredits } from "@packages/backend/payments/check.credits";
+import { OrganizationService } from "@packages/backend/database/organizations/organization.service";
 
 @Controller("/models")
 export class ModelsController {
   constructor(
     private _modelsService: ModelsService,
     private _mediaService: MediaService,
+    private _organizationService: OrganizationService,
   ) {}
 
   @Get("/")
@@ -25,6 +36,10 @@ export class ModelsController {
     @Body() data: GenerateModelDto,
     @Headers("refer") refer: string,
   ) {
+    if (calculateCredits(org.credits, data.type) < 0) {
+      throw new HttpException("Not enough credits", 402);
+    }
+
     if (data.type === GenerationCategory.TRAINER) {
       return {
         generated: await this._modelsService.trainModel(refer, org.id, data),
@@ -47,6 +62,11 @@ export class ModelsController {
         };
         break;
     }
+
+    await this._organizationService.setCredits(
+      org.id,
+      calculateCredits(org.credits, data.type),
+    );
 
     if (data.saveAsMedia) {
       return {
@@ -76,7 +96,11 @@ export class ModelsController {
     @Param("characterId") characterId: string,
     @Headers("refer") refer: string,
   ) {
-    return {
+    if (calculateCredits(org.credits, GenerationCategory.NORMAL_IMAGE) < 0) {
+      throw new HttpException("Not enough credits", 402);
+    }
+
+    const obj = {
       generated: await this._modelsService.generateCharacter(
         refer,
         org.id,
@@ -84,5 +108,12 @@ export class ModelsController {
         data,
       ),
     };
+
+    await this._organizationService.setCredits(
+      org.id,
+      calculateCredits(org.credits, GenerationCategory.NORMAL_IMAGE),
+    );
+
+    return obj;
   }
 }

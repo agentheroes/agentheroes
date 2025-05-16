@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@frontend/hooks/use-user";
 import { Button } from "@frontend/components/ui/button";
+import { CreditsDisplay } from "@frontend/components/credits/credits-display";
 
 export function Header() {
   const pathname = usePathname();
@@ -58,11 +59,14 @@ export function Header() {
             <span>Agents</span>
           </Link>
         </nav>
-        {user?.isSuperAdmin && (
-          <Link href="/onboarding">
-            <Button>System Settings</Button>
-          </Link>
-        )}
+        <div className="flex items-center gap-4">
+          {user && <CreditsDisplay />}
+          {user?.isSuperAdmin && (
+            <Link href="/onboarding">
+              <Button>System Settings</Button>
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

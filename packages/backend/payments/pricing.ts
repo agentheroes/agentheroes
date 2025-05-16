@@ -6,14 +6,14 @@ export const pricing = [
     credits: 200,
   },
   {
-    identifier: "Premium",
+    identifier: "premium",
     name: "Premium",
     price: 25,
     credits: 400,
   },
   {
-    identifier: "Deluxe",
-    name: "Premium",
+    identifier: "deluxe",
+    name: "Deluxe",
     price: 40,
     credits: 800,
   },

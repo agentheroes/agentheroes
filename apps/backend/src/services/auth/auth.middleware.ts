@@ -4,24 +4,7 @@ import { User } from '@prisma/client';
 import {OrganizationService} from "@packages/backend/database/organizations/organization.service";
 import {UsersService} from "@packages/backend/database/users/users.service";
 import {EncryptionService} from "@packages/backend/encryption/encryption.service";
-import {HttpForbiddenException, HttpUnauthorized} from "@packages/backend/exceptions/http.exceptions";
-
-export const removeAuth = (res: Response) => {
-  res.cookie('auth', '', {
-    domain: process.env.FRONTEND_URL,
-    ...(!process.env.NOT_SECURED
-      ? {
-          secure: true,
-          httpOnly: true,
-          sameSite: 'none',
-        }
-      : {}),
-    expires: new Date(0),
-    maxAge: -1,
-  });
-
-  res.header('logout', 'true');
-};
+import {HttpUnauthorized} from "@packages/backend/exceptions/http.exceptions";
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
@@ -35,8 +18,19 @@ export class AuthMiddleware implements NestMiddleware {
       throw new HttpUnauthorized();
     }
     try {
-      let user = EncryptionService.verifyJWT(auth) as User | null;
-      const orgHeader = req.cookies.showorg || req.headers.showorg;
+      let user: User | null;
+      user = EncryptionService.verifyJWT(auth) as User | null;
+      let orgHeader = req.cookies.showorg || req.headers.showorg;
+      if (user.isSuperAdmin && req.cookies.viewas) {
+        const orgUser = await this._userService.getOrgUser(req.cookies.viewas);
+        if (orgUser) {
+          user = orgUser.user;
+          user.isSuperAdmin = true;
+          // @ts-ignore
+          user.viewas = req.cookies.viewas;
+          orgHeader = orgUser.organizationId;
+        }
+      }
 
       if (!user) {
         throw new HttpUnauthorized();

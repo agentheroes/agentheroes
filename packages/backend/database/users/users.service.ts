@@ -23,4 +23,12 @@ export class UsersService {
   updatePassword(id: string, password: string) {
     return this._usersRepository.updatePassword(id, password);
   }
+
+  getOrgUser(orgUserId: string) {
+    return this._usersRepository.getOrgUser(orgUserId);
+  }
+
+  getAllUsers(search: string) {
+    return this._usersRepository.getAllUsers(search);
+  }
 }

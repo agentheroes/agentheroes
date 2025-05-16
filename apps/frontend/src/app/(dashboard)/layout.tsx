@@ -1,5 +1,6 @@
 import type React from "react";
 import { Header } from "@frontend/components/header";
+import { ViewasComponent } from "@frontend/components/viewas/viewas.component";
 
 export const metadata = {
   title: "Agent Heroes",
@@ -13,6 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <div className="min-h-screen bg-background flex flex-col w-full">
+      <ViewasComponent />
       <Header />
       <div className="px-4 py-8 w-full flex-1 h-full">
         <div className="flex w-full min-h-full">{children}</div>

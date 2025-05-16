@@ -6,6 +6,7 @@ import { FetchProviderComponent } from "@frontend/hooks/use-fetch";
 import { UserWrapper } from "@frontend/hooks/use-user";
 import { Toaster } from "@frontend/components/ui/toaster";
 import { AgentsProvider } from "@frontend/hooks/use-agents";
+import { CreditsDialogProvider } from "@frontend/components/credits/credits-dialog-context";
 
 const inter = localFont({
   src: [
@@ -52,10 +53,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className="dark">
       <body className={inter.className}>
         <EnvVariables value={availableList}>
-          <FetchProviderComponent>
-            <Toaster />
-            <UserWrapper>{children}</UserWrapper>
-          </FetchProviderComponent>
+          <CreditsDialogProvider>
+            <FetchProviderComponent>
+              <Toaster />
+              <UserWrapper>{children}</UserWrapper>
+            </FetchProviderComponent>
+          </CreditsDialogProvider>
         </EnvVariables>
       </body>
     </html>

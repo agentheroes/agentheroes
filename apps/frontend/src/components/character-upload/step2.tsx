@@ -6,6 +6,7 @@ import { Input } from "@frontend/components/ui/input";
 import { Label } from "@frontend/components/ui/label";
 import { useState, useEffect } from "react";
 import { useFetch } from "@frontend/hooks/use-fetch";
+import useSWR from "swr";
 
 interface CharacterUploadStep2Props {
   selectedImages: string[];
@@ -38,6 +39,7 @@ export function CharacterUploadStep2({
   const [isLoadingModels, setIsLoadingModels] = useState(true);
   const [trainingModels, setTrainingModels] = useState<Model[]>([]);
   const fetch = useFetch();
+  const { mutate } = useSWR("/user/self");
 
   useEffect(() => {
     const fetchTrainingModels = async () => {
@@ -113,6 +115,9 @@ export function CharacterUploadStep2({
       if (!response.ok) {
         throw new Error("Failed to submit training request");
       }
+      
+      // Refresh user data to update credits
+      await mutate();
       
       // If successful, proceed with onSubmit callback
       setError("");
