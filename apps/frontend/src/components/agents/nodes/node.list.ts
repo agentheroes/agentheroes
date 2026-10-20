@@ -5,6 +5,7 @@ import generateImageNode from "@frontend/components/agents/nodes/generate-image/
 import generateVideoNode from "@frontend/components/agents/nodes/generate-video/generate.video.node";
 import apiNode from "@frontend/components/agents/nodes/trigger/api.node";
 import rssNode from "@frontend/components/agents/nodes/third-party/rss.node";
+import webSearchNode from "@frontend/components/agents/nodes/third-party/web.search.node";
 import socialMediaNode from "@frontend/components/agents/nodes/publish/social.media.node";
 import scheduleNode from "@frontend/components/agents/nodes/trigger/schedule.node";
 import {
@@ -30,6 +31,7 @@ export const nodeList: NodesHighOrderComponent[] = [
   apiNode,
   scheduleNode,
   rssNode,
+  webSearchNode,
   generateCharacterNode,
   generateImageNode,
   generateVideoNode,

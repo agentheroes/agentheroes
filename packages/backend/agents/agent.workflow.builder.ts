@@ -10,6 +10,13 @@ import { ScheduleAgent } from "@packages/backend/agents/providers/trigger/schedu
 import { Injectable } from "@nestjs/common";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { EventEmitter } from "events";
+import { randomUUID } from "crypto";
+import { ParallelSearchAgent } from "@packages/backend/agents/providers/third-party/parallel.search.agent";
+
+export interface WorkflowContext {
+  researchSessionId: string;
+  signal?: AbortSignal;
+}
 
 export interface State {
   prompt?: string;
@@ -26,6 +33,7 @@ export interface Agent<T> {
     state: State,
     organization: string,
     model: BaseChatModel,
+    context?: WorkflowContext,
   ): Promise<State>;
 }
 
@@ -44,6 +52,7 @@ export class DispatchWorkflow {
     _rssAgent: RssAgent,
     _apiAgent: ApiAgent,
     _scheduleAgent: ScheduleAgent,
+    _parallelSearchAgent: ParallelSearchAgent,
   ) {
     this._agentList = [
       _generateCharacterAgent,
@@ -53,6 +62,7 @@ export class DispatchWorkflow {
       _rssAgent,
       _apiAgent,
       _scheduleAgent,
+      _parallelSearchAgent,
     ];
   }
 
@@ -62,6 +72,7 @@ export class DispatchWorkflow {
     agentTree: AgentTree[],
     model: BaseChatModel,
     subject: EventEmitter<any>,
+    signal?: AbortSignal,
   ): Promise<object[]> {
     const process = await this.processProcess(
       organization,
@@ -69,6 +80,7 @@ export class DispatchWorkflow {
       agentTree,
       model,
       subject,
+      { researchSessionId: randomUUID(), signal },
     );
     setTimeout(
       () =>
@@ -86,6 +98,7 @@ export class DispatchWorkflow {
     agentTree: AgentTree[],
     model: BaseChatModel,
     subject: EventEmitter<any>,
+    context: WorkflowContext = { researchSessionId: randomUUID() },
   ): Promise<object[]> {
     const nodes = agentTree.map((p) =>
       this._agentList.find((a) => a.node === p.node && p.type === a.type),
@@ -113,6 +126,7 @@ export class DispatchWorkflow {
               state,
               organization,
               model,
+              context,
             );
             return {
               node: node.node,
@@ -124,6 +138,7 @@ export class DispatchWorkflow {
                 agentTree[index].children,
                 model,
                 subject,
+                context,
               ),
             };
           } catch (err) {

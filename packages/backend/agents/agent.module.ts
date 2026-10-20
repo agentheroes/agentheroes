@@ -4,6 +4,7 @@ import {GenerateImageAgent} from "@packages/backend/agents/providers/generate-im
 import {GenerateVideoAgent} from "@packages/backend/agents/providers/generate-video/generate.video.agent";
 import {SocialMediaAgent} from "@packages/backend/agents/providers/publish/social.media.agent";
 import {RssAgent} from "@packages/backend/agents/providers/third-party/rss.agent";
+import {ParallelSearchAgent} from "@packages/backend/agents/providers/third-party/parallel.search.agent";
 import {ApiAgent} from "@packages/backend/agents/providers/trigger/api.agent";
 import {ScheduleAgent} from "@packages/backend/agents/providers/trigger/schedule.agent";
 import {DispatchWorkflow} from "@packages/backend/agents/agent.workflow.builder";
@@ -19,6 +20,7 @@ import {DispatchWorkflow} from "@packages/backend/agents/agent.workflow.builder"
         GenerateVideoAgent,
         SocialMediaAgent,
         RssAgent,
+        ParallelSearchAgent,
         ApiAgent,
         ScheduleAgent,
     ],

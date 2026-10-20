@@ -36,6 +36,22 @@
 - Schedule your videos to social media (currently supporting X)
 - Build agentic flow to automate the entire process and trigger is by schedule or with an API.
 
+## Web research in agent flows
+
+Add **Third Party → Web Search** after an API or schedule trigger, enter a
+search query, then connect an image generation node. Web Search uses
+[Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp)
+over HTTP. Search runs in Fast mode without an account or API key. It appends
+source excerpts and URLs to the prompt passed to following nodes, alongside any
+existing prompt. No search runs unless you add a Web Search node; existing RSS
+feeds, models and saved workflows keep their settings.
+
+Queries are sent to Parallel. External source material can be inaccurate or
+contain instructions; review generated content before publishing. Anonymous usage
+has limits. Search errors stop that workflow branch rather than generating with
+missing research. Each MCP request has a 30-second timeout and follows the
+workflow's existing retry behavior.
+
 ## Tech Stack
 
 - PNPM (Monorepo)
